@@ -1,0 +1,146 @@
+{
+  "slug": "chatgpt",
+  "mainTool": {
+    "name": "ChatGPT",
+    "logo": "🤖",
+    "developer": "OpenAI",
+    "rating": 4.8,
+    "pricing": "Free - $20/mo",
+    "description": "Advanced conversational AI with GPT-4 capabilities"
+  },
+  "alternatives": [
+    {
+      "name": "Claude",
+      "logo": "🧠",
+      "developer": "Anthropic",
+      "rating": 4.7,
+      "pricing": "Free - $20/mo",
+      "description": "AI assistant focused on being helpful, harmless, and honest"
+    },
+    {
+      "name": "Google Gemini",
+      "logo": "✨",
+      "developer": "Google",
+      "rating": 4.6,
+      "pricing": "Free",
+      "description": "Multimodal AI model with deep Google integration"
+    },
+    {
+      "name": "Microsoft Copilot",
+      "logo": "💡",
+      "developer": "Microsoft",
+      "rating": 4.5,
+      "pricing": "Free - $30/mo",
+      "description": "AI companion integrated with Microsoft 365"
+    }
+  ],
+  "features": [
+    {
+      "category": "Pricing",
+      "items": [
+        {"name": "Free Plan", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Premium Pricing", "chatgpt": "$20/mo", "claude": "$20/mo", "gemini": "Free", "copilot": "$30/mo"},
+        {"name": "Team Plans", "chatgpt": true, "claude": true, "gemini": false, "copilot": true}
+      ]
+    },
+    {
+      "category": "Capabilities",
+      "items": [
+        {"name": "Text Generation", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Code Generation", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Image Generation", "chatgpt": true, "claude": false, "gemini": true, "copilot": true},
+        {"name": "Image Analysis", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Web Browsing", "chatgpt": true, "claude": false, "gemini": true, "copilot": true},
+        {"name": "File Upload", "chatgpt": true, "claude": true, "gemini": true, "copilot": true}
+      ]
+    },
+    {
+      "category": "Context & Memory",
+      "items": [
+        {"name": "Context Window", "chatgpt": "128K tokens", "claude": "200K tokens", "gemini": "1M tokens", "copilot": "128K tokens"},
+        {"name": "Conversation Memory", "chatgpt": true, "claude": false, "gemini": true, "copilot": true},
+        {"name": "Custom Instructions", "chatgpt": true, "claude": false, "gemini": false, "copilot": false}
+      ]
+    },
+    {
+      "category": "Integration",
+      "items": [
+        {"name": "API Access", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Mobile App", "chatgpt": true, "claude": true, "gemini": true, "copilot": true},
+        {"name": "Browser Extension", "chatgpt": false, "claude": false, "gemini": true, "copilot": true},
+        {"name": "Office Integration", "chatgpt": false, "claude": false, "gemini": false, "copilot": true}
+      ]
+    }
+  ],
+  "pros": {
+    "chatgpt": [
+      "Most advanced language understanding",
+      "DALL-E integration for images",
+      "Large plugin ecosystem",
+      "Custom GPTs marketplace"
+    ],
+    "claude": [
+      "Largest context window (200K)",
+      "Strong ethical guidelines",
+      "Excellent for long documents",
+      "Constitutional AI approach"
+    ],
+    "gemini": [
+      "Completely free to use",
+      "Deep Google Search integration",
+      "Massive 1M token context",
+      "Multimodal from the ground up"
+    ],
+    "copilot": [
+      "Seamless Microsoft 365 integration",
+      "Enterprise security features",
+      "Built into Windows 11",
+      "Access to GPT-4 for free"
+    ]
+  },
+  "cons": {
+    "chatgpt": [
+      "Can be expensive for heavy users",
+      "Slower during peak times",
+      "Free tier limitations"
+    ],
+    "claude": [
+      "No image generation",
+      "Limited web browsing",
+      "Smaller user community"
+    ],
+    "gemini": [
+      "Less accurate than GPT-4",
+      "No team features yet",
+      "Limited third-party integrations"
+    ],
+    "copilot": [
+      "Most expensive premium tier",
+      "Requires Microsoft account",
+      "Less customization options"
+    ]
+  },
+  "seo_title_suffix": "vs Best Alternatives 2026",
+  "seo_intro": "Comprehensive comparison of {main} with top alternatives. Find the best AI assistant for your needs.",
+  "seo_chooser_title": "Which AI Assistant Should You Choose?",
+  "seo_chooser_intro": "Choosing the right AI assistant depends on your specific needs and use case. Here's a quick guide to help you decide:",
+  "seo_cards": [
+    {
+      "title": "Choose {name} if:",
+      "body": "You need the most advanced language model with plugin support and want access to DALL-E for image generation. Best for professionals who need the cutting edge of AI technology."
+    },
+    {
+      "title": "Choose Claude if:",
+      "body": "You work with very long documents and need a large context window. Ideal for researchers and writers who value safety and ethical AI."
+    },
+    {
+      "title": "Choose Google Gemini if:",
+      "body": "You want a completely free option with excellent Google integration and multimodal capabilities. Perfect for students and casual users."
+    },
+    {
+      "title": "Choose Microsoft Copilot if:",
+      "body": "You're heavily invested in the Microsoft ecosystem and need enterprise-grade features with Office 365 integration."
+    }
+  ],
+  "footer_note": "Last Updated: March 2026 | All pricing and features subject to change"
+}

@@ -1,0 +1,311 @@
+{
+  "project_name": "TAAFT_Data_Acquisition",
+  "description": "从 theresanaiforthat.com 抓取 AI 工具数据，用于新平台冷启动数据填充",
+  "version": "1.0",
+  "created_at": "2026-03-30",
+  "rules": [
+    {
+      "target": "AI 工具详情页 - 核心数据",
+      "description": "抓取 /ai/{tool-name} 页面的工具详细信息，包括名称、描述、定价、官网链接等。该页面类型占全站 56.5%（261/462 URL），是最核心的数据源。",
+      "start_urls": ["https://theresanaiforthat.com/ai/"],
+      "url_pattern": "https://theresanaiforthat.com/ai/{tool-slug}/",
+      "discovery_method": "从分类页 /task/{category} 和搜索聚合页 /s/{keyword} 提取所有工具链接",
+      "rules": [
+        {
+          "name": "tool_name",
+          "selector": "h1",
+          "type": "text",
+          "description": "工具名称"
+        },
+        {
+          "name": "tool_description",
+          "selector": "meta[name='description']",
+          "type": "attr",
+          "attr": "content",
+          "description": "工具描述（从 meta 标签获取，更适合 SEO 复用）"
+        },
+        {
+          "name": "tool_website_url",
+          "selector": "a[rel='nofollow'][target='_blank']",
+          "type": "attr",
+          "attr": "href",
+          "description": "工具官方网站链接（注意解析可能的重定向跟踪链接）"
+        },
+        {
+          "name": "tool_logo_url",
+          "selector": "img.tool-logo, img[alt*='logo']",
+          "type": "attr",
+          "attr": "src",
+          "description": "工具 Logo 图片 URL"
+        },
+        {
+          "name": "pricing_type",
+          "selector": "span.pricing-badge, div.pricing-info",
+          "type": "text",
+          "description": "定价类型（Free, Freemium, Paid 等）"
+        },
+        {
+          "name": "categories",
+          "selector": "a[href*='/s/'], a[href*='/task/']",
+          "type": "text",
+          "description": "工具所属分类标签列表"
+        },
+        {
+          "name": "user_rating",
+          "selector": "span.rating-value, div.rating-score",
+          "type": "text",
+          "description": "用户评分"
+        },
+        {
+          "name": "page_title",
+          "selector": "title",
+          "type": "text",
+          "description": "页面 Title 标签（用于分析 TAAFT 的 TDK 策略）"
+        }
+      ],
+      "pagination": null,
+      "anti_crawl": {
+        "delay": 3,
+        "headless": true,
+        "user_agent_rotation": true,
+        "proxy_rotation": true,
+        "respect_robots_txt": true,
+        "max_concurrent": 2
+      },
+      "estimated_pages": 47434,
+      "priority": "P0"
+    },
+    {
+      "target": "任务分类页 - 分类体系与工具列表",
+      "description": "抓取 /task/{category} 页面的分类名称和该分类下的工具列表。用于构建平台的分类导航体系。",
+      "start_urls": ["https://theresanaiforthat.com/"],
+      "url_pattern": "https://theresanaiforthat.com/task/{category-slug}/",
+      "discovery_method": "从首页导航栏和底部分类链接提取所有分类 URL",
+      "rules": [
+        {
+          "name": "category_name",
+          "selector": "h1",
+          "type": "text",
+          "description": "分类名称"
+        },
+        {
+          "name": "category_description",
+          "selector": "meta[name='description']",
+          "type": "attr",
+          "attr": "content",
+          "description": "分类描述"
+        },
+        {
+          "name": "tool_links",
+          "selector": "a[href*='/ai/']",
+          "type": "attr",
+          "attr": "href",
+          "description": "该分类下所有工具的详情页链接（用于遍历抓取）"
+        },
+        {
+          "name": "tool_count",
+          "selector": "span.tool-count, div.result-count",
+          "type": "text",
+          "description": "该分类下的工具总数"
+        }
+      ],
+      "pagination": {
+        "selector": "a.next-page, button.load-more",
+        "max_pages": 50
+      },
+      "anti_crawl": {
+        "delay": 2,
+        "headless": false,
+        "user_agent_rotation": true,
+        "proxy_rotation": false,
+        "respect_robots_txt": true,
+        "max_concurrent": 3
+      },
+      "estimated_pages": 11324,
+      "priority": "P0"
+    },
+    {
+      "target": "搜索聚合页 - 关键词与工具映射",
+      "description": "抓取 /s/{keyword} 页面的搜索关键词和对应的工具列表。用于分析 TAAFT 的关键词覆盖策略和构建初始的关键词-工具映射关系。",
+      "start_urls": ["https://theresanaiforthat.com/s/"],
+      "url_pattern": "https://theresanaiforthat.com/s/{keyword}/",
+      "discovery_method": "从站点地图 (sitemap.xml) 和内部链接提取所有搜索聚合页 URL",
+      "rules": [
+        {
+          "name": "search_keyword",
+          "selector": "h1, title",
+          "type": "text",
+          "description": "搜索关键词"
+        },
+        {
+          "name": "result_tools",
+          "selector": "a[href*='/ai/']",
+          "type": "attr",
+          "attr": "href",
+          "description": "搜索结果中的工具链接列表"
+        },
+        {
+          "name": "result_count",
+          "selector": "span.result-count",
+          "type": "text",
+          "description": "搜索结果数量"
+        }
+      ],
+      "pagination": {
+        "selector": "a.next-page",
+        "max_pages": 10
+      },
+      "anti_crawl": {
+        "delay": 3,
+        "headless": true,
+        "user_agent_rotation": true,
+        "proxy_rotation": true,
+        "respect_robots_txt": true,
+        "max_concurrent": 2
+      },
+      "estimated_pages": 5000,
+      "priority": "P1"
+    },
+    {
+      "target": "GPTs 详情页 - GPT 数据",
+      "description": "抓取 /gpt/{gpt-name} 和 /gpts/s/{keyword} 页面的 GPT 信息。",
+      "start_urls": ["https://theresanaiforthat.com/gpts/"],
+      "url_pattern": "https://theresanaiforthat.com/gpt/{gpt-slug}/",
+      "discovery_method": "从 GPTs 搜索页提取所有 GPT 详情页链接",
+      "rules": [
+        {
+          "name": "gpt_name",
+          "selector": "h1",
+          "type": "text",
+          "description": "GPT 名称"
+        },
+        {
+          "name": "gpt_description",
+          "selector": "div.gpt-description, meta[name='description']",
+          "type": "text",
+          "description": "GPT 描述"
+        },
+        {
+          "name": "gpt_link",
+          "selector": "a[href*='chat.openai.com'], a[href*='chatgpt.com']",
+          "type": "attr",
+          "attr": "href",
+          "description": "GPT 原始链接"
+        }
+      ],
+      "pagination": {
+        "selector": "a.next-page",
+        "max_pages": 20
+      },
+      "anti_crawl": {
+        "delay": 3,
+        "headless": true,
+        "user_agent_rotation": true,
+        "proxy_rotation": false,
+        "respect_robots_txt": true,
+        "max_concurrent": 2
+      },
+      "estimated_pages": 2000,
+      "priority": "P2"
+    },
+    {
+      "target": "API 搜索页 - AI API 数据",
+      "description": "抓取 /apis/s/{keyword} 页面的 AI API 信息。",
+      "start_urls": ["https://theresanaiforthat.com/apis/"],
+      "url_pattern": "https://theresanaiforthat.com/apis/s/{keyword}/",
+      "discovery_method": "从 API 首页和内部链接提取",
+      "rules": [
+        {
+          "name": "api_keyword",
+          "selector": "h1",
+          "type": "text",
+          "description": "API 搜索关键词"
+        },
+        {
+          "name": "api_tools",
+          "selector": "a[href*='/ai/']",
+          "type": "attr",
+          "attr": "href",
+          "description": "API 工具链接列表"
+        }
+      ],
+      "pagination": {
+        "selector": "a.next-page",
+        "max_pages": 10
+      },
+      "anti_crawl": {
+        "delay": 3,
+        "headless": false,
+        "user_agent_rotation": true,
+        "proxy_rotation": false,
+        "respect_robots_txt": true,
+        "max_concurrent": 2
+      },
+      "estimated_pages": 500,
+      "priority": "P2"
+    },
+    {
+      "target": "公司页 - AI 公司数据",
+      "description": "抓取 /company/{name} 页面的公司信息，用于构建公司-工具关联。",
+      "start_urls": ["https://theresanaiforthat.com/"],
+      "url_pattern": "https://theresanaiforthat.com/company/{company-slug}/",
+      "discovery_method": "从工具详情页提取公司链接",
+      "rules": [
+        {
+          "name": "company_name",
+          "selector": "h1",
+          "type": "text",
+          "description": "公司名称"
+        },
+        {
+          "name": "company_tools",
+          "selector": "a[href*='/ai/']",
+          "type": "attr",
+          "attr": "href",
+          "description": "该公司旗下的工具链接列表"
+        }
+      ],
+      "pagination": null,
+      "anti_crawl": {
+        "delay": 2,
+        "headless": false,
+        "user_agent_rotation": true,
+        "proxy_rotation": false,
+        "respect_robots_txt": true,
+        "max_concurrent": 3
+      },
+      "estimated_pages": 5873,
+      "priority": "P1"
+    }
+  ],
+  "global_anti_crawl": {
+    "description": "TAAFT 使用 Cloudflare 作为 CDN 和 WAF，需要特别注意反爬策略",
+    "cloudflare_bypass": {
+      "method": "使用 Headless 浏览器 (Puppeteer/Playwright) 模拟真实用户行为",
+      "tls_fingerprint": "模拟 Chrome 浏览器的 TLS 指纹",
+      "cookie_handling": "自动处理 Cloudflare 的 __cf_bm 和 cf_clearance Cookie"
+    },
+    "rate_limiting": {
+      "requests_per_minute": 20,
+      "daily_limit": 10000,
+      "cool_down_on_429": 300
+    },
+    "ip_rotation": {
+      "enabled": true,
+      "provider": "可配置代理池",
+      "min_proxy_count": 50
+    },
+    "user_agent_pool": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Mobile/15E148 Safari/604.1"
+    ]
+  },
+  "data_storage": {
+    "format": "JSON Lines (.jsonl)",
+    "database": "MySQL 8.0 / PostgreSQL 15",
+    "deduplication": "基于 tool_name + website_url 的唯一索引去重",
+    "update_frequency": "每周增量更新"
+  }
+}

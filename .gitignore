@@ -1,0 +1,22 @@
+# macOS / Finder 元数据（不参与构建，易污染 diff）
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# 常见本地环境
+.env
+.env.local
+*.log
+
+# 本地数据库与虚拟环境（勿将生产 app.db 提交入库，见 04-P0安全与联调备忘 ENG-04）
+backend/data/*.db
+backend/.venv/
+# 本地校验用虚拟环境，勿入库
+backend/.venv_check/
+.venv/
+
+# 依赖与构建产物（子目录常有独立 .gitignore，此处补根级路径）
+node_modules/
+frontend/node_modules/
+frontend/dist/

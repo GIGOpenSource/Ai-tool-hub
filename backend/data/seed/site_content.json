@@ -1,0 +1,431 @@
+{
+  "guide": {
+    "page_title": "User Guide",
+    "page_subtitle": "Learn how to make the most of AI Tools Hub. Follow this complete walkthrough to discover, compare, and manage AI tools efficiently.",
+    "steps": [
+      {
+        "title": "1. Discover AI Tools",
+        "icon_key": "Search",
+        "description": "Browse through our curated collection of AI tools",
+        "color": "text-cyan-400",
+        "features": [
+          "Use the search bar to find specific tools",
+          "Filter by category (Video, Copywriting, Image, Code, etc.)",
+          "Sort by popularity, rating, or newest",
+          "Filter by pricing (Free, Freemium, Paid)"
+        ],
+        "path": "/"
+      },
+      {
+        "title": "2. View Tool Details",
+        "icon_key": "BookOpen",
+        "description": "Learn everything about AI tools with comprehensive information",
+        "color": "text-purple-400",
+        "features": [
+          "Read detailed descriptions and features",
+          "View screenshots and demo videos",
+          "Check pricing plans and availability",
+          "See user ratings and reviews",
+          "Compare with alternative tools"
+        ],
+        "path": "/tool/chatgpt"
+      },
+      {
+        "title": "3. Compare Alternatives",
+        "icon_key": "Filter",
+        "description": "Make informed decisions with side-by-side comparisons",
+        "color": "text-pink-400",
+        "features": [
+          "Compare features across multiple tools",
+          "View pricing differences",
+          "Check ratings and user feedback",
+          "Identify the best tool for your needs"
+        ],
+        "path": "/compare/chatgpt"
+      },
+      {
+        "title": "4. Save Your Favorites",
+        "icon_key": "Heart",
+        "description": "Build your personal collection of AI tools",
+        "color": "text-red-400",
+        "features": [
+          "Click the heart icon on any tool card",
+          "Access all favorites from your profile",
+          "Search and filter your saved tools",
+          "Remove tools you no longer need"
+        ],
+        "path": "/favorites"
+      },
+      {
+        "title": "5. Share & Review",
+        "icon_key": "MessageSquare",
+        "description": "Help the community by sharing your experience",
+        "color": "text-green-400",
+        "features": [
+          "Leave ratings and reviews for tools you've used",
+          "Share tools with friends and colleagues",
+          "Read reviews from other users",
+          "Vote on helpful reviews"
+        ],
+        "path": "/tool/chatgpt"
+      },
+      {
+        "title": "6. Submit New Tools",
+        "icon_key": "Upload",
+        "description": "Contribute to the community by adding tools",
+        "color": "text-yellow-400",
+        "features": [
+          "Submit your own AI tool",
+          "Help others discover new tools",
+          "Provide detailed information",
+          "Track submission status"
+        ],
+        "path": "/submit"
+      }
+    ],
+    "feature_highlights": [
+      {"icon_key": "Search", "title": "Smart Search", "description": "Auto-suggest and powerful filtering"},
+      {"icon_key": "Star", "title": "User Reviews", "description": "Authentic ratings and feedback"},
+      {"icon_key": "Filter", "title": "Advanced Filters", "description": "Find exactly what you need"},
+      {"icon_key": "Share2", "title": "Social Sharing", "description": "Share discoveries easily"},
+      {"icon_key": "User", "title": "User Profiles", "description": "Personalized experience"},
+      {"icon_key": "Heart", "title": "Favorites", "description": "Save and organize tools"}
+    ],
+    "workflow_title": "Complete Workflow",
+    "try_cta": "Try it now",
+    "key_features_title": "Key Features",
+    "account_section_title": "User Account Features",
+    "profile_card": {
+      "title": "My Profile",
+      "bullets": [
+        "View your activity history",
+        "Edit personal information",
+        "Track statistics and contributions",
+        "Manage account settings"
+      ],
+      "cta": "Go to Profile",
+      "href": "/profile"
+    },
+    "favorites_card": {
+      "title": "My Favorites",
+      "bullets": [
+        "Save tools for quick access",
+        "Organize by category",
+        "Search your collection",
+        "Export favorites list"
+      ],
+      "cta": "View Favorites",
+      "href": "/favorites"
+    },
+    "tips_title": "Tips & Best Practices",
+    "tips_discovery_title": "For Tool Discovery",
+    "tips_discovery_bullets": [
+      "Use filters to narrow down options",
+      "Check ratings and review counts",
+      "Read user reviews for real insights",
+      "Compare alternatives before deciding",
+      "Save interesting tools for later"
+    ],
+    "tips_contrib_title": "For Contributing",
+    "tips_contrib_bullets": [
+      "Submit tools you find valuable",
+      "Write detailed, honest reviews",
+      "Help others with accurate ratings",
+      "Share tools with your network",
+      "Keep information up-to-date"
+    ],
+    "cta_title": "Ready to Get Started?",
+    "cta_body": "Explore our collection of AI tools and start building your favorites list today",
+    "cta_primary": "Explore AI Tools",
+    "cta_secondary": "View Site Map"
+  },
+  "more": {
+    "page_subtitle": "Explore all features, settings, and resources available on the platform",
+    "quick_access_title": "Quick Access",
+    "resources_title": "Resources & Support",
+    "stats": [
+      {"value": "500+", "label": "AI Tools"},
+      {"value": "50K+", "label": "Users"},
+      {"value": "10K+", "label": "Reviews"},
+      {"value": "24/7", "label": "Support"}
+    ],
+    "nav_links": [
+      {"id": "profile", "icon_key": "User", "title_key": "nav.profile", "description": "Manage your account and preferences", "href": "/profile", "color": "from-cyan-400 to-blue-500"},
+      {"id": "favorites", "icon_key": "Heart", "title_key": "nav.favorites", "description": "View your saved AI tools collection", "href": "/favorites", "color": "from-pink-400 to-red-500"},
+      {"id": "settings", "icon_key": "Settings", "title_key": "nav.settings", "description": "Customize your experience", "href": "/settings", "color": "from-purple-400 to-indigo-500"},
+      {"id": "submit", "icon_key": "Send", "title_key": "nav.submit", "description": "Submit your AI tool to the directory", "href": "/submit", "color": "from-green-400 to-teal-500"},
+      {"id": "guide", "icon_key": "BookOpen", "title_key": "nav.guide", "description": "Learn how to use the platform", "href": "/guide", "color": "from-orange-400 to-yellow-500"},
+      {"id": "sitemap", "icon_key": "Map", "title_key": "nav.sitemap", "description": "Explore all pages and sections", "href": "/sitemap", "color": "from-indigo-400 to-purple-500"}
+    ],
+    "resource_links": [
+      {"icon_key": "HelpCircle", "title": "FAQ", "description": "Frequently asked questions", "href": "#faq"},
+      {"icon_key": "Mail", "title": "Contact Us", "description": "Get in touch with our team", "href": "#contact"},
+      {"icon_key": "Shield", "title": "Privacy Policy", "description": "How we protect your data", "href": "#privacy"},
+      {"icon_key": "FileCheck", "title": "Terms of Service", "description": "Our terms and conditions", "href": "#terms"}
+    ]
+  },
+  "sitemap": {
+    "title": "Site Map",
+    "subtitle": "Explore all pages and features available on AI Tools Hub",
+    "platform_overview_title": "Platform Overview",
+    "category_suffix": "Pages",
+    "stat_labels": ["Total Pages", "Main Pages", "User Pages", "Protected"],
+    "unlock_title": "Unlock More Features",
+    "unlock_body": "Login to access your profile, favorites, settings, and submit tools",
+    "unlock_cta": "Go to Home & Login",
+    "badge_login_required": "Login Required",
+    "pages": [
+      {"name": "Home", "path": "/", "icon_key": "Home", "description": "Browse and discover AI tools", "category": "Main", "color": "text-cyan-400", "requires_auth": false},
+      {"name": "Tool Details", "path": "/tool/chatgpt", "icon_key": "Search", "description": "Detailed information about AI tools", "category": "Main", "color": "text-purple-400", "requires_auth": false},
+      {"name": "Compare Tools", "path": "/compare", "icon_key": "Layers", "description": "Dynamic tool comparison - select any tools to compare", "category": "Main", "color": "text-pink-400", "requires_auth": false},
+      {"name": "Dashboard", "path": "/dashboard", "icon_key": "BarChart3", "description": "Analytics and management dashboard", "category": "Main", "color": "text-green-400", "requires_auth": false},
+      {"name": "My Profile", "path": "/profile", "icon_key": "User", "description": "View and edit your profile", "category": "User", "color": "text-cyan-400", "requires_auth": true},
+      {"name": "My Favorites", "path": "/favorites", "icon_key": "Heart", "description": "Your saved AI tools collection", "category": "User", "color": "text-pink-400", "requires_auth": true},
+      {"name": "Settings", "path": "/settings", "icon_key": "Settings", "description": "Account and preference settings", "category": "User", "color": "text-purple-400", "requires_auth": true},
+      {"name": "Submit Tool", "path": "/submit", "icon_key": "Upload", "description": "Submit your AI tool to the platform", "category": "Action", "color": "text-yellow-400", "requires_auth": true},
+      {"name": "User Guide", "path": "/guide", "icon_key": "BookOpen", "description": "Complete platform walkthrough", "category": "Help", "color": "text-blue-400", "requires_auth": false}
+    ]
+  },
+  "dashboard": {
+    "stat_badges": ["+12.5%", "+8.3%", "+5.2%", "+3.1%"],
+    "summary_numbers": {"views": "5,570", "clicks": "403", "rating": "4.8", "ctr": "7.2%"},
+    "page_views_data": [
+      {"date": "Mar 1", "views": 1240, "clicks": 85},
+      {"date": "Mar 5", "views": 1580, "clicks": 102},
+      {"date": "Mar 10", "views": 1820, "clicks": 118},
+      {"date": "Mar 15", "views": 2100, "clicks": 145},
+      {"date": "Mar 20", "views": 2350, "clicks": 168},
+      {"date": "Mar 25", "views": 2680, "clicks": 192},
+      {"date": "Mar 30", "views": 3120, "clicks": 225}
+    ],
+    "ratings_data": [
+      {"date": "Week 1", "rating": 4.3, "reviews": 12},
+      {"date": "Week 2", "rating": 4.5, "reviews": 18},
+      {"date": "Week 3", "rating": 4.6, "reviews": 25},
+      {"date": "Week 4", "rating": 4.8, "reviews": 31}
+    ],
+    "category_performance": [
+      {"category": "Copywriting", "tools": 8, "views": 12500, "engagement": 78},
+      {"category": "Image Gen", "tools": 6, "views": 9800, "engagement": 82},
+      {"category": "Code", "tools": 5, "views": 8200, "engagement": 85},
+      {"category": "Video", "tools": 4, "views": 7100, "engagement": 71},
+      {"category": "Analytics", "tools": 3, "views": 5400, "engagement": 68}
+    ],
+    "my_tools": [
+      {"id": 1, "slug": "chatgpt", "name": "AI Content Writer Pro", "category": "Copywriting", "status": "Active", "views": 3120, "clicks": 225, "rating": 4.8, "featured": true},
+      {"id": 2, "slug": "midjourney", "name": "Smart Image Generator", "category": "Image Generation", "status": "Active", "views": 2450, "clicks": 178, "rating": 4.6, "featured": false},
+      {"id": 3, "slug": "github-copilot", "name": "Code Assistant Plus", "category": "Code Assistant", "status": "Pending Review", "views": 0, "clicks": 0, "rating": 0, "featured": false}
+    ],
+    "ui": {
+      "chart_views_clicks": "Page Views & Clicks Over Time",
+      "period_badge": "Last 30 Days",
+      "chart_category": "Category Performance",
+      "chart_ratings": "User Ratings Trend",
+      "manage_all": "Manage All",
+      "featured_badge": "Featured",
+      "get_featured_title": "Boost Your Tool's Visibility",
+      "get_featured_body": "Get featured on the homepage and reach thousands of potential users. Featured tools receive 5x more views on average.",
+      "get_featured_bullets": [
+        "Priority placement on homepage",
+        "Highlighted in category pages",
+        "Featured badge on your listing",
+        "Social media promotion"
+      ],
+      "price": "$99",
+      "per_month": "per month",
+      "get_featured_cta": "Get Featured Now",
+      "edit_listing_hint": "Tool listing changes are reviewed by admins. Contact support or submit an update request.",
+      "get_featured_hint": "Featured placement is arranged with operations. This button opens the contact page.",
+      "manage_all_scroll": "Scroll to My Tools below."
+    }
+  },
+  "compare_interactive": {
+    "tools": [
+      {"id": "chatgpt", "name": "ChatGPT", "logo": "🤖", "category": "Copywriting", "rating": 4.8, "pricing": "Freemium", "description": "Advanced conversational AI", "features": ["Natural language understanding", "Multi-language support", "Code generation", "Image generation"], "pros": ["Most advanced language model", "Excellent context understanding", "Regular updates"], "cons": ["Can be expensive", "Rate limits on free tier", "Occasional inaccuracies"]},
+      {"id": "claude", "name": "Claude", "logo": "🎭", "category": "Copywriting", "rating": 4.7, "pricing": "Freemium", "description": "AI assistant by Anthropic", "features": ["Long context window", "Safe and helpful", "Document analysis", "Code assistance"], "pros": ["Excellent for long documents", "Very ethical and safe", "Great for analysis"], "cons": ["Slower response sometimes", "Limited image capabilities", "Fewer integrations"]},
+      {"id": "gemini", "name": "Google Gemini", "logo": "✨", "category": "Copywriting", "rating": 4.6, "pricing": "Free", "description": "Google's multimodal AI", "features": ["Multimodal input", "Google integration", "Real-time info", "Large context"], "pros": ["Free to use", "Google integration", "Real-time information"], "cons": ["Less creative", "Privacy concerns", "Limited customization"]},
+      {"id": "midjourney", "name": "Midjourney", "logo": "🎨", "category": "Image Generation", "rating": 4.9, "pricing": "Paid", "description": "AI art generator", "features": ["High-quality images", "Artistic styles", "Community gallery", "Commercial use"], "pros": ["Best image quality", "Amazing artistic results", "Active community"], "cons": ["Paid only", "Requires Discord", "Can be complex"]},
+      {"id": "dalle", "name": "DALL-E 3", "logo": "🖼️", "category": "Image Generation", "rating": 4.7, "pricing": "Freemium", "description": "OpenAI's image generator", "features": ["Text-to-image", "Image editing", "High resolution", "ChatGPT integration"], "pros": ["Integrated with ChatGPT", "Easy to use", "Good prompt understanding"], "cons": ["Content restrictions", "Limited free usage", "Slower generation"]},
+      {"id": "github-copilot", "name": "GitHub Copilot", "logo": "💻", "category": "Code Assistant", "rating": 4.8, "pricing": "Paid", "description": "AI pair programmer", "features": ["Code completion", "Multi-language", "IDE integration", "Code explanation"], "pros": ["Excellent code suggestions", "IDE integration", "Learns your style"], "cons": ["Subscription required", "Can suggest insecure code", "Limited context"]},
+      {"id": "cursor", "name": "Cursor", "logo": "⚡", "category": "Code Assistant", "rating": 4.6, "pricing": "Freemium", "description": "AI-powered code editor", "features": ["AI code editing", "Chat with codebase", "Multi-file edits", "Terminal integration"], "pros": ["Full IDE experience", "Can edit multiple files", "Great for refactoring"], "cons": ["New tool learning curve", "Resource intensive", "Limited extensions"]}
+    ],
+    "max_compare": 4,
+    "toast_max": "Maximum 4 tools can be compared",
+    "toast_added": "{name} added to comparison",
+    "toast_removed": "Tool removed from comparison",
+    "seo": {
+      "title": "Compare AI Tools Side-by-Side",
+      "description": "Select up to 4 AI tools and compare features, pricing, pros and cons. Find the perfect AI tool for your needs with our comprehensive comparison tool.",
+      "keywords": "compare AI tools, AI tool comparison, ChatGPT vs Claude, Midjourney vs DALL-E, AI comparison"
+    },
+    "ui": {
+      "page_intro": "Select up to 4 AI tools to compare side-by-side. Analyze features, pricing, and user ratings to find the perfect tool for your needs.",
+      "selected_prefix": "Selected Tools",
+      "show_selector": "Show Tool Selector",
+      "hide_selector": "Hide Tool Selector",
+      "no_selected": "No tools selected. Add tools to start comparing.",
+      "available_title": "Available Tools",
+      "search_placeholder": "Search tools by name or category...",
+      "no_search_results": "No tools found matching your search.",
+      "table_feature": "Feature",
+      "row_category": "Category",
+      "row_pricing": "Pricing",
+      "row_description": "Description",
+      "row_key_features": "Key Features",
+      "row_pros": "Pros",
+      "row_cons": "Cons",
+      "row_visit": "Visit",
+      "view_details": "View Details",
+      "need_more_title": "Add One More Tool",
+      "need_more_body": "Select at least one more tool to start comparing"
+    }
+  },
+  "submit": {
+    "category_slugs": ["video-editing", "copywriting", "image-generation", "code-assistant", "productivity", "analytics"],
+    "pricing_options": ["Free", "Freemium", "Paid"],
+    "ui": {
+      "breadcrumb": "Submit Tool",
+      "login_title": "Please login to submit a tool",
+      "login_cta": "Go to Home",
+      "toast_need_login": "Please login to submit a tool",
+      "toast_success": "Tool submitted successfully! We'll review it soon.",
+      "page_title": "Submit AI Tool",
+      "page_intro": "Share your AI tool with our community. Fill out the form below and we'll review your submission.",
+      "section_basic": "Basic Information",
+      "label_tool_name": "Tool Name",
+      "placeholder_tool_name": "e.g., ChatGPT, Midjourney",
+      "label_website": "Website URL",
+      "placeholder_website": "https://example.com",
+      "label_short_desc": "Short Description",
+      "placeholder_short_desc": "One-line description (max 100 characters)",
+      "char_count": "{n}/100 characters",
+      "label_long_desc": "Detailed Description",
+      "placeholder_long_desc": "Provide a detailed description of your tool, its features, and what makes it unique...",
+      "section_category": "Categorization",
+      "label_category": "Category",
+      "label_pricing": "Pricing Model",
+      "section_additional": "Additional Details",
+      "label_features": "Key Features",
+      "placeholder_features": "List key features, one per line...",
+      "label_logo_url": "Logo URL",
+      "placeholder_logo": "https://example.com/logo.png",
+      "logo_hint": "Optional: Provide a link to your tool's logo or icon",
+      "guidelines_title": "Submission Guidelines",
+      "guidelines": [
+        "Tool must be AI-powered or AI-related",
+        "Provide accurate and up-to-date information",
+        "Description should be clear and professional",
+        "All submissions are reviewed before publishing",
+        "Spam or low-quality submissions will be rejected"
+      ],
+      "cancel": "Cancel",
+      "submitting": "Submitting...",
+      "submit_btn": "Submit Tool",
+      "success_title": "Submission Received!",
+      "success_body": "Thank you for submitting {name}. Our team will review it and get back to you soon.",
+      "success_redirect": "Redirecting to homepage..."
+    }
+  },
+  "profile": {
+    "activity": [
+      {"type": "review", "tool": "ChatGPT", "action": "Left a 5-star review", "date": "2 days ago", "icon": "⭐"},
+      {"type": "favorite", "tool": "Midjourney", "action": "Added to favorites", "date": "5 days ago", "icon": "❤️"},
+      {"type": "visit", "tool": "GitHub Copilot", "action": "Visited tool page", "date": "1 week ago", "icon": "👁️"},
+      {"type": "review", "tool": "Notion AI", "action": "Left a 4-star review", "date": "2 weeks ago", "icon": "⭐"}
+    ],
+    "stats": [
+      {"label": "Tools Reviewed", "value": 12, "color": "text-cyan-400"},
+      {"label": "Favorites", "value": 8, "color": "text-pink-400"},
+      {"label": "Tools Submitted", "value": 3, "color": "text-purple-400"},
+      {"label": "Helpful Votes", "value": 156, "color": "text-green-400"}
+    ],
+    "ui": {
+      "member_since": "Member since {date}",
+      "edit_profile_btn": "Edit Profile",
+      "statistics_title": "Statistics",
+      "edit_profile_title": "Edit Profile",
+      "label_name": "Name",
+      "label_email": "Email",
+      "label_bio": "Bio",
+      "bio_placeholder": "Tell us about yourself...",
+      "quick_actions_title": "Quick Actions",
+      "recent_activity_title": "Recent Activity"
+    },
+    "login_prompt_title": "Please login to view your profile",
+    "login_prompt_cta": "Go to Home",
+    "breadcrumb_profile": "My Profile"
+  },
+  "favorites": {
+    "breadcrumb_label": "My Favorites",
+    "items": [
+      {"id": "chatgpt", "name": "ChatGPT", "description": "Advanced conversational AI for natural language understanding", "icon": "🤖", "rating": 4.8, "pricing": "Freemium", "category": "Copywriting", "saved_date": "March 15, 2026"},
+      {"id": "midjourney", "name": "Midjourney", "description": "AI-powered art and image generation", "icon": "🎨", "rating": 4.9, "pricing": "Paid", "category": "Image Generation", "saved_date": "March 10, 2026"},
+      {"id": "github-copilot", "name": "GitHub Copilot", "description": "AI pair programmer that helps you write code", "icon": "💻", "rating": 4.7, "pricing": "Paid", "category": "Code Assistant", "saved_date": "March 5, 2026"},
+      {"id": "notion-ai", "name": "Notion AI", "description": "Enhance your workspace with AI-powered writing", "icon": "📝", "rating": 4.7, "pricing": "Freemium", "category": "Productivity", "saved_date": "February 28, 2026"}
+    ],
+    "filter_categories": ["all", "Copywriting", "Image Generation", "Code Assistant", "Productivity"]
+  },
+  "home_seo": {
+    "brand_title": "AI Tools Hub",
+    "brand_icon_emoji": "",
+    "keywords": "AI tools, artificial intelligence, ChatGPT, Midjourney, AI directory, copywriting AI, video editing AI, code assistant, image generation"
+  },
+  "ui_toasts": {
+    "sort_popular": "Sorted by Most Popular",
+    "sort_rating": "Sorted by Highest Rating",
+    "sort_newest": "Sorted by Newest",
+    "removed_favorite": "Removed from favorites",
+    "link_copied": "Link copied to clipboard!",
+    "share_fallback": "Check out {name} on AI Tools Hub",
+    "cleared_filters": "Filters cleared",
+    "no_tools": "No tools found matching your filters.",
+    "clear_filters": "Clear Filters",
+    "tools_found_one": "tool found",
+    "tools_found_many": "tools found"
+  },
+  "not_found": {
+    "tool_title": "Tool not found",
+    "compare_title": "Comparison not found",
+    "cta_home": "Back to Home"
+  },
+  "seo_sitemap_static": {
+    "urls": [
+      {"path": "/", "priority": "1.0", "changefreq": "weekly"},
+      {"path": "/compare", "priority": "0.85", "changefreq": "weekly"},
+      {"path": "/submit", "priority": "0.7", "changefreq": "weekly"},
+      {"path": "/sitemap", "priority": "0.5", "changefreq": "weekly"},
+      {"path": "/guide", "priority": "0.6", "changefreq": "weekly"},
+      {"path": "/more", "priority": "0.5", "changefreq": "weekly"},
+      {"path": "/support/faq", "priority": "0.4", "changefreq": "monthly"},
+      {"path": "/support/contact", "priority": "0.4", "changefreq": "monthly"},
+      {"path": "/support/privacy", "priority": "0.3", "changefreq": "yearly"},
+      {"path": "/support/terms", "priority": "0.3", "changefreq": "yearly"}
+    ]
+  },
+  "seo_robots": {},
+  "admin_settings": {
+    "frontend_menu_items": [
+      {"id": "nav-home", "key": "nav.home", "label": "Home", "path": "/", "icon": "Home", "permission": "", "visible": true, "order": 0},
+      {"id": "nav-compare", "key": "nav.compare", "label": "Compare", "path": "/compare", "icon": "GitCompare", "permission": "", "visible": true, "order": 1},
+      {"id": "nav-dash", "key": "nav.dashboard", "label": "Dashboard", "path": "/dashboard", "icon": "LayoutDashboard", "permission": "", "visible": true, "order": 2},
+      {"id": "nav-submit", "key": "nav.submit", "label": "Submit", "path": "/submit", "icon": "Upload", "permission": "", "visible": true, "order": 3},
+      {"id": "nav-more", "key": "nav.more", "label": "More", "path": "/more", "icon": "MoreHorizontal", "permission": "", "visible": true, "order": 4}
+    ],
+    "admin_menu_items": [
+      {"id": "adm-dash", "key": "sidebar.dashboard", "label": "Dashboard", "path": "/admin/dashboard", "icon": "BarChart3", "permission": "", "visible": true, "order": 0},
+      {"id": "adm-analytics", "key": "sidebar.analytics", "label": "Analytics", "path": "/admin/analytics", "icon": "LineChart", "permission": "", "visible": true, "order": 1},
+      {"id": "adm-tools", "key": "sidebar.tools", "label": "Tools", "path": "/admin/tools", "icon": "Wrench", "permission": "", "visible": true, "order": 2},
+      {"id": "adm-users", "key": "sidebar.users", "label": "Users", "path": "/admin/users", "icon": "Users", "permission": "", "visible": true, "order": 3},
+      {"id": "adm-reviews", "key": "sidebar.reviews", "label": "Reviews", "path": "/admin/reviews", "icon": "MessageSquare", "permission": "", "visible": true, "order": 4},
+      {"id": "adm-mon", "key": "sidebar.monetization", "label": "Monetization", "path": "/admin/monetization", "icon": "DollarSign", "permission": "", "visible": true, "order": 5},
+      {"id": "adm-seo", "key": "sidebar.pageSeo", "label": "Page SEO", "path": "/admin/page-seo", "icon": "Search", "permission": "", "visible": true, "order": 6},
+      {"id": "adm-tool-jsonld", "key": "sidebar.toolJsonLd", "label": "Tool JSON-LD", "path": "/admin/tool-json-ld", "icon": "Braces", "permission": "", "visible": true, "order": 13},
+      {"id": "adm-blocks", "key": "sidebar.siteBlocks", "label": "Site JSON", "path": "/admin/site-blocks", "icon": "Code2", "permission": "", "visible": true, "order": 7},
+      {"id": "adm-home-seo", "key": "sidebar.homeSeoForm", "label": "Home SEO", "path": "/admin/home-seo", "icon": "Search", "permission": "", "visible": true, "order": 15},
+      {"id": "adm-i18n", "key": "sidebar.translations", "label": "Translations", "path": "/admin/translations", "icon": "Languages", "permission": "", "visible": true, "order": 16},
+      {"id": "adm-comp", "key": "sidebar.comparisons", "label": "Comparisons", "path": "/admin/comparisons", "icon": "GitCompare", "permission": "", "visible": true, "order": 17},
+      {"id": "adm-settings", "key": "sidebar.settings", "label": "Settings", "path": "/admin/settings", "icon": "Settings", "permission": "", "visible": true, "order": 18}
+    ]
+  },
+  "page_seo": {}
+}

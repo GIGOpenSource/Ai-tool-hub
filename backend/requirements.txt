@@ -1,0 +1,9 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.0.0
+pyjwt>=2.8.0
+passlib[bcrypt]>=1.7.4
+# bcrypt 4.1+ 与 passlib 1.7.4 在启动自检时会报错，锁 4.0.x
+bcrypt>=4.0.1,<4.1.0
+eval-type-backport>=0.2.0
+psycopg[binary]>=3.1.0

@@ -1,0 +1,89 @@
+# site_json 白名单键在管理端 PUT 前的轻量 Schema 校验（防整包粘贴坏类型）
+from __future__ import annotations
+
+from typing import Any  # JSON 值类型
+
+from fastapi import HTTPException  # 400 业务错
+
+
+def _list_of_str(v: Any, field: str) -> None:  # 须为字符串数组
+    if not isinstance(v, list):  # 非数组
+        raise HTTPException(status_code=400, detail=f"site_json_schema:{field}_array")  # 键提示
+    for i, x in enumerate(v):  # 逐项须 str
+        if not isinstance(x, str):  # 混入数字等
+            raise HTTPException(status_code=400, detail=f"site_json_schema:{field}[{i}]")  # 定位
+
+
+def validate_submit_site_json(payload: dict[str, Any]) -> None:  # submit 块
+    cs = payload.get("category_slugs")  # 分类顺序
+    if cs is not None:  # 有则校验
+        _list_of_str(cs, "category_slugs")  # 须 slug 串列表
+    po = payload.get("pricing_options")  # 定价选项文案
+    if po is not None:  # 可选存在
+        _list_of_str(po, "pricing_options")  # 须字符串列表
+    ui = payload.get("ui")  # 页面文案包
+    if ui is not None and (not isinstance(ui, dict) or isinstance(ui, list)):  # 须对象
+        raise HTTPException(status_code=400, detail="site_json_schema:ui_object")  # ui 类型
+
+
+def validate_dashboard_site_json(payload: dict[str, Any]) -> None:  # dashboard 块
+    sb = payload.get("stat_badges")  # 顶部四格
+    if sb is not None:  # 有则校验
+        if not isinstance(sb, list):  # 须数组
+            raise HTTPException(status_code=400, detail="site_json_schema:stat_badges_array")  # 类型
+        for i, x in enumerate(sb):  # 徽章须为字符串（前台 normalize 会兜底，入库仍规范）
+            if not isinstance(x, str):  # 非法元素
+                raise HTTPException(status_code=400, detail=f"site_json_schema:stat_badges[{i}]")  # 下标
+    sn = payload.get("summary_numbers")  # 摘要数字
+    if sn is not None and (not isinstance(sn, dict) or isinstance(sn, list)):  # 须对象
+        raise HTTPException(status_code=400, detail="site_json_schema:summary_numbers_object")  # 类型
+    ui = payload.get("ui")  # 仪表盘文案
+    if ui is not None and (not isinstance(ui, dict) or isinstance(ui, list)):  # 须对象
+        raise HTTPException(status_code=400, detail="site_json_schema:dashboard_ui_object")  # 键区分 submit
+    mt = payload.get("my_tools")  # 演示/壳数据数组
+    if mt is not None and not isinstance(mt, list):  # 须数组
+        raise HTTPException(status_code=400, detail="site_json_schema:my_tools_array")  # 类型
+    for name in ("page_views_data", "ratings_data", "category_performance"):  # 图表序列
+        block = payload.get(name)  # 取块
+        if block is not None and not isinstance(block, list):  # 须数组
+            raise HTTPException(status_code=400, detail=f"site_json_schema:{name}_array")  # 点名
+
+
+def validate_seo_tool_json_ld(payload: dict[str, Any]) -> None:  # 工具详情 JSON-LD 全局合并块
+    gm = payload.get("global_merge")  # 浅合并进 SoftwareApplication 的对象
+    if gm is not None and (not isinstance(gm, dict) or isinstance(gm, list)):  # 须纯对象
+        raise HTTPException(status_code=400, detail="site_json_schema:seo_tool_json_ld.global_merge_object")  # 路径式 detail
+
+
+def validate_seo_robots_site_json(payload: dict[str, Any]) -> None:  # robots.txt 运营配置
+    rb = payload.get("raw_body")  # 全文覆盖
+    if rb is not None and not isinstance(rb, str):  # 须字符串或省略
+        raise HTTPException(status_code=400, detail="site_json_schema:seo_robots.raw_body_string")  # 类型
+    su = payload.get("sitemap_url")  # 单条绝对 URL
+    if su is not None and not isinstance(su, str):  # 须字符串或省略
+        raise HTTPException(status_code=400, detail="site_json_schema:seo_robots.sitemap_url_string")  # 类型
+    sus = payload.get("sitemap_urls")  # 多条
+    if sus is not None:  # 有则校验
+        if not isinstance(sus, list):  # 须数组
+            raise HTTPException(status_code=400, detail="site_json_schema:seo_robots.sitemap_urls_array")  # 类型
+        for i, x in enumerate(sus):  # 逐项
+            if not isinstance(x, str):  # 须 URL 串
+                raise HTTPException(status_code=400, detail=f"site_json_schema:seo_robots.sitemap_urls[{i}]")  # 下标
+    dp = payload.get("disallow_paths")  # Disallow 前缀列表
+    if dp is not None:  # 有则校验
+        if not isinstance(dp, list):  # 须数组
+            raise HTTPException(status_code=400, detail="site_json_schema:seo_robots.disallow_paths_array")  # 类型
+        for i, p in enumerate(dp):  # 逐项
+            if not isinstance(p, str) or not str(p).strip().startswith("/"):  # 须以 / 开头
+                raise HTTPException(status_code=400, detail=f"site_json_schema:seo_robots.disallow_paths[{i}]")  # 下标
+
+
+def validate_site_json_for_key(key: str, payload: dict[str, Any]) -> None:  # 按键分发
+    if key == "submit":  # 提交页元数据
+        validate_submit_site_json(payload)  # 分类/pricing/ui
+    elif key == "dashboard":  # 仪表盘壳
+        validate_dashboard_site_json(payload)  # 徽章/摘要/序列
+    elif key == "seo_tool_json_ld":  # 结构化数据运营覆盖
+        validate_seo_tool_json_ld(payload)  # global_merge
+    elif key == "seo_robots":  # robots.txt 与 Sitemap 声明
+        validate_seo_robots_site_json(payload)  # raw_body / sitemap_url(s) / disallow_paths
