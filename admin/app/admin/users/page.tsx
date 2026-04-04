@@ -47,9 +47,9 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-white">{t("users.title")}</h1>
-      <div className="rounded-xl border border-purple-500/20 overflow-x-auto">
+      <div className="rounded-xl border border-admin-border/90 overflow-x-auto">
         <table className="w-full text-sm min-w-[880px]">
-          <thead className="bg-[#120822] text-gray-400 text-left">
+          <thead className="bg-admin-surface text-gray-400 text-left">
             <tr>
               <ThHelp title={t("users.colUid")} help={t("fieldHelp.users.colUid")} />
               <ThHelp title={t("users.colUser")} help={t("fieldHelp.users.colUser")} />
@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
               <ThHelp title={t("users.colActions")} help={t("fieldHelp.users.colActions")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {isLoading && (
               <tr>
                 <td colSpan={6} className="p-4 text-gray-500">
@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
                     <select
                       value={r.role}
                       onChange={(e) => roleMut.mutate({ id: r.id, role: e.target.value })}
-                      className="bg-black/40 border border-purple-500/30 rounded px-2 py-1 text-xs"
+                      className="bg-black/40 border border-admin-border rounded px-2 py-1 text-xs"
                     >
                       <option value="user">user</option>
                       <option value="developer">developer</option>
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
                     </button>
                     <button
                       type="button"
-                      className="text-xs text-cyan-300"
+                      className="text-xs text-admin-accent"
                       onClick={() => mailMut.mutate(r.id)}
                     >
                       {t("users.emailMock")}

@@ -3,7 +3,7 @@
  * /api/site/home_seo、/api/site/ui_toasts；SEO 由 useResolvedPageSeo 合并 i18n 与后台 page_seo。
  * 搜索筛选、价格与排序、收藏 Set 为客户端状态；canonical 使用 getPublicSiteOrigin。
  */
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react"; // React：满足 TS 对 JSX 的隐式引用；hooks 为具名导入
 import { toast } from "sonner";
 import { Navigation } from "../components/Navigation";
 import { SEO } from "../components/SEO";
@@ -15,10 +15,11 @@ import { HomeToolGrid } from "./home/HomeToolGrid";
 import { useHomeData } from "./home/useHomeData";
 import { getPublicSiteOrigin } from "../../lib/siteUrl"; // 首页 canonical
 import { useResolvedPageSeo } from "../hooks/useResolvedPageSeo"; // 后台 page_seo 覆写
+import { FullPageLoadError } from "../components/FullPageLoadError"; // 数据加载失败整页态
 
 export function HomePage() {
   const { t, language } = useLanguage();
-  const { tools, categories, suggestions, homeSeo, uiToasts, error } = useHomeData(language);
+  const { tools, categories, suggestions, homeSeo, uiToasts, error, retryLoad } = useHomeData(language);
   const seoMerged = useResolvedPageSeo("/", {
     title: t("home.title"),
     description: t("home.subtitle"),
@@ -90,14 +91,7 @@ export function HomePage() {
   };
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-400 px-4">
-        <SEO noindex title={t("common.error")} description={String(error)} htmlLang={language} /> {/* 错误态避免收录 */}
-        <p>
-          {t("common.error")}: {error} (请确认已启动后端: python3 -m uvicorn app.main:app --port 8000)
-        </p>
-      </div>
-    );
+    return <FullPageLoadError technicalMessage={error} onRetry={retryLoad} />;
   }
 
   const origin = getPublicSiteOrigin(); // 配置的站点根

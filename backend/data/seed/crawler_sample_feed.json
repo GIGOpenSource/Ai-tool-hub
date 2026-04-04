@@ -1,0 +1,27 @@
+{
+  "items": [
+    {
+      "slug": "crawler-demo-feed-tool-one",
+      "name": "Demo Feed Tool One",
+      "description": "用于验证 JSON 订阅导入的示例工具（可删）。",
+      "long_description": "长描述可选；导入后默认 moderation=pending，请在 Tools 中审核。",
+      "tagline": "示例副标题",
+      "category_slug": "productivity",
+      "website_url": "https://example.com",
+      "pricing": "Free",
+      "rating": 4.2,
+      "popularity": 10,
+      "review_count": 0,
+      "icon_emoji": "🧪",
+      "features": ["特性一", "特性二"],
+      "pricing_plans": [
+        {
+          "name": "Free",
+          "price_label": "$0",
+          "features": ["基础能力"]
+        }
+      ],
+      "screenshots": ["https://example.com/screenshot-placeholder.png"]
+    }
+  ]
+}

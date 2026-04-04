@@ -1,21 +1,25 @@
 """FastAPI 入口：注册路由、CORS；启动逻辑用 lifespan（替代 on_event）。"""
 from __future__ import annotations
 
+import asyncio  # 爬虫调度协程取消
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress  # lifespan 与 CancelledError
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI  # Web 框架入口
+from fastapi.middleware.cors import CORSMiddleware  # 跨域中间件（Starlette 再导出，FastAPI 官方用法）
 
 from app.db import get_db, init_db
-from app.env_guard import enforce_production_secrets  # 生产弱 JWT 启动前拦截
+from app.env_guard import enforce_production_secrets, warn_production_cors_origins  # 生产 JWT 拦截与 CORS 提示
+from app.release_meta import api_version  # 与 /api/health、OpenAPI 共用的版本号
 from app.ensure_accounts import ensure_dev_accounts, seed_monetization_sample
-from app.routers import auth, catalog, comparisons, i18n as i18n_router, site, tools
+from app.routers import auth, catalog, comparisons, health_release, i18n as i18n_router, site, tools
 from app.routers import user_activity, user_favorites, user_orders, user_profile, user_settings  # me* 收藏/订单
 from app.routers import seo_public
 from app.routers import (
+    admin_ai_insights,
     admin_analytics,
     admin_comparison_pages,
+    admin_crawler,
     admin_dashboard,
     admin_monetization,
     admin_page_seo,
@@ -29,6 +33,7 @@ from app.routers import (
     submissions,
     track,
 )
+from app.crawler_scheduler import crawler_scheduler_loop  # 进程内定时爬虫巡检
 from app.seed_all import run_seed_if_empty
 
 
@@ -57,17 +62,22 @@ def _cors_allow() -> tuple[list[str], bool, str | None]:
 async def _app_lifespan(_app: FastAPI):
     """进程生命周期：建库、空库种子、演示账号、示例订单（与旧 startup 一致）。"""
     enforce_production_secrets()  # ENVIRONMENT=production 时拒绝弱 JWT_SECRET
+    warn_production_cors_origins()  # 生产未配 ALLOWED_ORIGINS 或 * 时 stderr 警告
     init_db()  # 建表 + apply_migrations
     run_seed_if_empty()  # 仅空库写入种子
     ensure_dev_accounts()  # 开发演示账号
     with get_db() as conn:  # 示例商业订单
         seed_monetization_sample(conn)
         conn.commit()
+    sched_task = asyncio.create_task(crawler_scheduler_loop())  # 后台每分钟检查定时爬虫
     yield  # 应用运行
+    sched_task.cancel()  # 请求停机时取消协程
+    with suppress(asyncio.CancelledError):  # cancel 视为正常结束
+        await sched_task  # 等待协程收尾
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="AI Tools Hub API", version="1.0.0", lifespan=_app_lifespan)
+    app = FastAPI(title="AI Tools Hub API", version=api_version(), lifespan=_app_lifespan)  # version 可被 APP_VERSION 覆盖
     allow_origins, allow_credentials, allow_origin_regex = _cors_allow()  # 解包 CORS 三要素
     app.add_middleware(
         CORSMiddleware,
@@ -78,6 +88,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     # 以下路由全部挂在 /api 下，与前台 Vite 代理、管理端 Next rewrites 一致
+    app.include_router(health_release.router, prefix="/api")  # GET /api/health：发布与回滚对账
     app.include_router(tools.router, prefix="/api")
     app.include_router(catalog.router, prefix="/api")
     app.include_router(i18n_router.router, prefix="/api")
@@ -93,6 +104,7 @@ def create_app() -> FastAPI:
     app.include_router(track.router, prefix="/api")
     app.include_router(submissions.router, prefix="/api")
     app.include_router(admin_dashboard.router, prefix="/api")
+    app.include_router(admin_ai_insights.router, prefix="/api")
     app.include_router(admin_analytics.router, prefix="/api")
     app.include_router(admin_tools.router, prefix="/api")
     app.include_router(admin_users.router, prefix="/api")
@@ -104,6 +116,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_translations.router, prefix="/api")
     app.include_router(admin_search_suggestions.router, prefix="/api")
     app.include_router(admin_comparison_pages.router, prefix="/api")
+    app.include_router(admin_crawler.router, prefix="/api")
 
     return app  # 组装完成返回应用实例
 

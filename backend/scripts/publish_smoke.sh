@@ -10,6 +10,12 @@ code() {
 
 echo "publish_smoke: BASE_URL=$BASE_URL"
 
+c0=$(code "${BASE_URL}/api/health")
+if [[ "$c0" != "200" ]]; then
+  echo "FAIL: GET /api/health 期望 200，实际 $c0"
+  exit 1
+fi
+
 c1=$(code -X POST "${BASE_URL}/api/submissions/tool" -H "Content-Type: application/json" -d "{}")
 if [[ "$c1" != "401" ]]; then
   echo "FAIL: POST /api/submissions/tool 期望 401，实际 $c1"

@@ -141,10 +141,10 @@ export default function AdminPageSeoPage() {
 
       {!isLoading && data && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-purple-500/25 bg-black/30 p-4 flex flex-col min-h-[420px]">
+          <div className="rounded-xl border border-admin-border/90 bg-black/30 p-4 flex flex-col min-h-[420px]">
             <input
               type="search"
-              className="w-full mb-1 rounded-lg bg-black/40 border border-purple-500/30 px-3 py-2 text-sm text-gray-200"
+              className="w-full mb-1 rounded-lg bg-black/40 border border-admin-border px-3 py-2 text-sm text-gray-200"
               placeholder={t("pageSeo.search")}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -153,7 +153,7 @@ export default function AdminPageSeoPage() {
             <div className="flex gap-2 mb-1 mt-3">
               <input
                 type="text"
-                className="flex-1 rounded-lg bg-black/40 border border-purple-500/30 px-3 py-2 text-xs text-gray-200"
+                className="flex-1 rounded-lg bg-black/40 border border-admin-border px-3 py-2 text-xs text-gray-200"
                 placeholder={t("pageSeo.addPathPlaceholder")}
                 value={newPath}
                 onChange={(e) => setNewPath(e.target.value)}
@@ -161,7 +161,7 @@ export default function AdminPageSeoPage() {
               <button
                 type="button"
                 onClick={addCustomPath}
-                className="shrink-0 px-3 py-2 rounded-lg bg-purple-600/80 text-white text-xs"
+                className="shrink-0 px-3 py-2 rounded-lg bg-admin-btn/85 text-white text-xs"
               >
                 {t("pageSeo.addPath")}
               </button>
@@ -179,11 +179,11 @@ export default function AdminPageSeoPage() {
                     onClick={() => setSelected(p)}
                     className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
                       active
-                        ? "border-cyan-500/50 bg-cyan-500/10 text-white"
+                        ? "border-admin-border bg-white/[0.04] text-white"
                         : "border-transparent hover:bg-white/5 text-gray-300"
                     }`}
                   >
-                    <div className="font-mono text-xs text-cyan-200/90 break-all">{p}</div>
+                    <div className="font-mono text-xs text-gray-300/90 break-all">{p}</div>
                     {lbl && (
                       <div className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">
                         {lbl.zh} · {lbl.en}
@@ -196,11 +196,11 @@ export default function AdminPageSeoPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-purple-500/25 bg-black/30 p-4">
+          <div className="rounded-xl border border-admin-border/90 bg-black/30 p-4">
             <p className="text-xs text-gray-500 mb-4">{t("pageSeo.hintSelect")}</p>
             {selected ? (
               <div className="space-y-3">
-                <p className="text-sm text-cyan-300/90 font-mono break-all">{selected}</p>
+                <p className="text-sm text-admin-accent/90 font-mono break-all">{selected}</p>
                 <p className="text-xs text-gray-500">{t("pageSeo.fieldsHint")}</p>
                 <div className="grid grid-cols-1 gap-2 max-h-[52vh] overflow-y-auto pr-1">
                   {EDIT_KEYS.map((key) => (
@@ -211,7 +211,7 @@ export default function AdminPageSeoPage() {
                       <FieldHint text={t(`fieldHelp.pageSeo.k.${key}`)} />
                       <input
                         type="text"
-                        className="w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-100"
+                        className="w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-100"
                         value={row[key] ?? ""}
                         onChange={(e) => setField(key, e.target.value)}
                       />
@@ -221,7 +221,7 @@ export default function AdminPageSeoPage() {
                     <span className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        className="rounded border-purple-500/40"
+                        className="rounded border-admin-border"
                         checked={parseNoindexDraft(row.noindex)}
                         onChange={(e) => setField("noindex", e.target.checked ? "1" : "")}
                       />
@@ -237,7 +237,7 @@ export default function AdminPageSeoPage() {
                     </span>
                     <FieldHint text={t("fieldHelp.pageSeo.k.og_type")} />
                     <select
-                      className="w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-100"
+                      className="w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-100"
                       value={row.og_type ?? ""}
                       onChange={(e) => setField("og_type", e.target.value)}
                     >
@@ -261,7 +261,7 @@ export default function AdminPageSeoPage() {
             type="button"
             onClick={() => save.mutate()}
             disabled={save.isPending || isLoading}
-            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-admin-btn text-white text-sm disabled:opacity-50"
           >
             {save.isPending ? t("pageSeo.saving") : t("pageSeo.save")}
           </button>

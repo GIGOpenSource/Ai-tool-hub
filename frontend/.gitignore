@@ -1,0 +1,15 @@
+# 依赖目录（npm 安装产物，勿提交）
+node_modules/
+# Vite 构建输出目录（勿提交）
+dist/
+
+# Finder 索引文件（勿提交）
+.DS_Store
+# macOS/外置卷 AppleDouble 元数据副本（勿提交）
+._*
+
+# 环境变量与密钥（勿提交）
+.env
+.env.local
+# 运行日志（勿提交）
+*.log

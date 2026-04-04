@@ -135,25 +135,25 @@ Pages to design:
 
 ### 1. 性能需求
 
--   **响应时间**：由于平台强依赖 SEO，核心页面（首页、详情页、分类页）的加载时间在移动端 LCP 必须 < 2.5 秒，FID < 100 毫秒。
--   **并发能力**：支持至少 10,000 用户同时在线，搜索接口响应时间 < 500ms。
--   **图片加载**：所有工具 Logo 和截图资源必须转换为 WebP 格式，并强制启用懒加载（Lazy Loading）。
+- **响应时间**：由于平台强依赖 SEO，核心页面（首页、详情页、分类页）的加载时间在移动端 LCP 必须 < 2.5 秒，FID < 100 毫秒。
+- **并发能力**：支持至少 10,000 用户同时在线，搜索接口响应时间 < 500ms。
+- **图片加载**：所有工具 Logo 和截图资源必须转换为 WebP 格式，并强制启用懒加载（Lazy Loading）。
 
 ### 2. 安全需求
 
--   **防爬机制**：平台自身需建立防爬机制，限制单 IP 高频访问，保护核心数据资产。
--   **内容合规**：用户提交的评论和开发者修改的工具信息必须经过敏感词过滤，必要时接入第三方内容安全审核 API。
+- **防爬机制**：平台自身需建立防爬机制，限制单 IP 高频访问，保护核心数据资产。
+- **内容合规**：用户提交的评论和开发者修改的工具信息必须经过敏感词过滤，必要时接入第三方内容安全审核 API。
 
 ### 3. SEO 需求 (极高优先级)
 
--   **URL 结构**：全站采用扁平化、语义化的静态 URL 结构，避免深层嵌套。
--   **TDK 自动化**：基于工具名称、分类和描述，利用大模型自动生成高质量、包含长尾关键词的 Title 和 Meta Description。
--   **Schema 标记**：工具详情页必须包含完整的 `SoftwareApplication` 和 `AggregateRating` Schema 结构化数据，以争取 Google 搜索结果的富文本展示（Rich Snippets）。
+- **URL 结构**：全站采用扁平化、语义化的静态 URL 结构，避免深层嵌套。
+- **TDK 自动化**：基于工具名称、分类和描述，利用大模型自动生成高质量、包含长尾关键词的 Title 和 Meta Description。
+- **Schema 标记**：工具详情页必须包含完整的 `SoftwareApplication` 和 `AggregateRating` Schema 结构化数据，以争取 Google 搜索结果的富文本展示（Rich Snippets）。
 
 ### 4. 运维与监控需求
 
--   **流量监控**：接入 Google Analytics 4 和 Google Search Console，重点监控各页面类型的自然搜索流量和跳出率。
--   **错误日志**：记录所有 404 页面和 500 错误，特别是爬虫抓取时的异常，及时修复死链。
+- **流量监控**：接入 Google Analytics 4 和 Google Search Console，重点监控各页面类型的自然搜索流量和跳出率。
+- **错误日志**：记录所有 404 页面和 500 错误，特别是爬虫抓取时的异常，及时修复死链。
 
 ## 八、 埋点
 
@@ -170,5 +170,5 @@ Pages to design:
 
 ## 九、 参考资料 (References)
 
-*   [1] TAAFT 竞品分析报告 v2.0 - /home/ubuntu/competitor_analysis/TAAFT_Competitor_Analysis_Report_v2.md
-*   [2] 运营需求文档 (ORD)：AI 工具导航平台运营战略与规划 - /home/ubuntu/competitor_analysis/TAAFT_ORD_Document.md
+- [1] TAAFT 竞品分析报告 v2.0 - /home/ubuntu/competitor_analysis/TAAFT_Competitor_Analysis_Report_v2.md
+- [2] 运营需求文档 (ORD)：AI 工具导航平台运营战略与规划 - /home/ubuntu/competitor_analysis/TAAFT_ORD_Document.md

@@ -62,13 +62,13 @@ function SeoSitemapTable({
   ); // 稳定回调
 
   return (
-    <div className="space-y-3 rounded-xl border border-purple-500/25 bg-[#0a011890] p-4">
+    <div className="space-y-3 rounded-xl border border-admin-border/90 bg-admin-bg/90 p-4">
       <p className="text-xs text-gray-500">{labels.path} / {labels.priority} / {labels.changefreq}</p>
       <div className="space-y-2">
         {rows.map((row, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <input
-              className="min-w-[140px] flex-1 rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+              className="min-w-[140px] flex-1 rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
               value={row.path}
               onChange={(e) => {
                 const cp = rows.slice(); // 拷贝
@@ -77,7 +77,7 @@ function SeoSitemapTable({
               }}
             />
             <input
-              className="w-24 rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+              className="w-24 rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
               value={row.priority}
               onChange={(e) => {
                 const cp = rows.slice();
@@ -86,7 +86,7 @@ function SeoSitemapTable({
               }}
             />
             <input
-              className="w-28 rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+              className="w-28 rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
               value={row.changefreq}
               onChange={(e) => {
                 const cp = rows.slice();
@@ -106,7 +106,7 @@ function SeoSitemapTable({
       </div>
       <button
         type="button"
-        className="rounded-lg border border-cyan-500/40 px-3 py-1.5 text-sm text-cyan-300 hover:bg-cyan-500/10"
+        className="rounded-lg border border-admin-border px-3 py-1.5 text-sm text-admin-accent hover:bg-white/[0.04]"
         onClick={() => setRows([...rows, { path: "/", priority: "0.5", changefreq: "monthly" }])}
       >
         {labels.addRow}
@@ -165,9 +165,9 @@ function FirstLevelFields({
                   type="checkbox"
                   checked={v}
                   onChange={(e) => patchScalar(k, e.target.checked)}
-                  className="rounded border-purple-500/40"
+                  className="rounded border-admin-border"
                 />
-                <span className="font-mono text-cyan-300">{k}</span>
+                <span className="font-mono text-admin-accent">{k}</span>
               </label>
             );
           }
@@ -177,7 +177,7 @@ function FirstLevelFields({
                 <span className="text-xs text-gray-400 font-mono">{k}</span>
                 <input
                   type="number"
-                  className="w-full rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+                  className="w-full rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
                   value={Number.isFinite(v) ? v : 0}
                   onChange={(e) => patchScalar(k, e.target.value === "" ? 0 : Number(e.target.value))}
                 />
@@ -190,13 +190,13 @@ function FirstLevelFields({
               <span className="text-xs text-gray-400 font-mono">{k}</span>
               {long ? (
                 <textarea
-                  className="min-h-[72px] w-full rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+                  className="min-h-[72px] w-full rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
                   value={String(v)}
                   onChange={(e) => patchScalar(k, e.target.value)}
                 />
               ) : (
                 <input
-                  className="w-full rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"
+                  className="w-full rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"
                   value={String(v)}
                   onChange={(e) => patchScalar(k, e.target.value)}
                 />
@@ -205,12 +205,12 @@ function FirstLevelFields({
           );
         }
         return (
-          <details key={k} className="rounded-lg border border-purple-500/20 bg-[#0a0118]/60 p-3 open:border-purple-500/40">
+          <details key={k} className="rounded-lg border border-admin-border/90 bg-admin-bg/60 p-3 open:border-admin-border">
             <summary className="cursor-pointer text-sm font-mono text-amber-200/90">
               {k} <span className="text-xs text-gray-500">({labels.nestedHint})</span>
             </summary>
             <textarea
-              className="mt-2 min-h-[160px] w-full font-mono text-xs rounded-lg border border-purple-500/25 bg-[#0a0118] p-2 text-gray-100"
+              className="mt-2 min-h-[160px] w-full font-mono text-xs rounded-lg border border-admin-border/90 bg-admin-bg p-2 text-gray-100"
               spellCheck={false}
               value={nestedText[k] ?? ""}
               onChange={(e) => setNestedText((prev) => ({ ...prev, [k]: e.target.value }))}

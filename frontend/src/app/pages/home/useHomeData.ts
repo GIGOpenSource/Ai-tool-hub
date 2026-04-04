@@ -13,6 +13,7 @@ export function useHomeData(language: string) {
   const [homeSeo, setHomeSeo] = useState<HomeSeo | null>(null);
   const [uiToasts, setUiToasts] = useState<UiToasts>({});
   const [error, setError] = useState<string | null>(null);
+  const [retryEpoch, setRetryEpoch] = useState(0); // 递增以在不改 language 时强制重拉
 
   useEffect(() => {
     let active = true;
@@ -38,7 +39,9 @@ export function useHomeData(language: string) {
     return () => {
       active = false;
     };
-  }, [language]);
+  }, [language, retryEpoch]);
 
-  return { tools, categories, suggestions, homeSeo, uiToasts, error };
+  const retryLoad = () => setRetryEpoch((n) => n + 1); // 供错误页「重试」复用同一套请求
+
+  return { tools, categories, suggestions, homeSeo, uiToasts, error, retryLoad };
 }

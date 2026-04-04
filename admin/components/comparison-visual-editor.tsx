@@ -116,12 +116,12 @@ export const ComparisonVisualEditor = forwardRef<
   };
 
   const inputCls =
-    "w-full rounded-lg border border-purple-500/30 bg-[#0a0118] px-2 py-1.5 text-sm text-white"; // 通用输入框
+    "w-full rounded-lg border border-admin-border bg-admin-bg px-2 py-1.5 text-sm text-white"; // 通用输入框
 
   return (
     <div className="space-y-8">
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-cyan-300">{t("comparisonAdmin.sectionMain")}</h2>
+        <h2 className="text-sm font-semibold text-admin-accent">{t("comparisonAdmin.sectionMain")}</h2>
         <div className="grid gap-3 md:grid-cols-2">
           <label className="block space-y-1 text-xs text-gray-400">
             {t("comparisonAdmin.fieldName")}
@@ -158,10 +158,10 @@ export const ComparisonVisualEditor = forwardRef<
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-cyan-300">{t("comparisonAdmin.sectionAlts")}</h2>
+          <h2 className="text-sm font-semibold text-admin-accent">{t("comparisonAdmin.sectionAlts")}</h2>
           <button
             type="button"
-            className="rounded-lg border border-cyan-500/40 px-3 py-1.5 text-xs text-cyan-300 hover:bg-cyan-500/10"
+            className="rounded-lg border border-admin-border px-3 py-1.5 text-xs text-admin-accent hover:bg-white/[0.04]"
             onClick={() => onChange({ ...draft, alternatives: [...alts, emptyAltRow()] })}
           >
             {t("comparisonAdmin.addAlt")}
@@ -169,7 +169,7 @@ export const ComparisonVisualEditor = forwardRef<
         </div>
         <div className="space-y-4">
           {alts.map((row, i) => (
-            <div key={i} className="rounded-xl border border-purple-500/25 bg-[#0a0118]/80 p-4 space-y-2">
+            <div key={i} className="rounded-xl border border-admin-border/90 bg-admin-bg/80 p-4 space-y-2">
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -217,7 +217,7 @@ export const ComparisonVisualEditor = forwardRef<
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-cyan-300">{t("comparisonAdmin.sectionSeo")}</h2>
+        <h2 className="text-sm font-semibold text-admin-accent">{t("comparisonAdmin.sectionSeo")}</h2>
         <div className="grid gap-3 md:grid-cols-2">
           <label className="block space-y-1 text-xs text-gray-400 md:col-span-2">
             {t("comparisonAdmin.seoTitleSuffix")}
@@ -244,10 +244,10 @@ export const ComparisonVisualEditor = forwardRef<
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-cyan-300">{t("comparisonAdmin.sectionCards")}</h2>
+          <h2 className="text-sm font-semibold text-admin-accent">{t("comparisonAdmin.sectionCards")}</h2>
           <button
             type="button"
-            className="rounded-lg border border-cyan-500/40 px-3 py-1.5 text-xs text-cyan-300 hover:bg-cyan-500/10"
+            className="rounded-lg border border-admin-border px-3 py-1.5 text-xs text-admin-accent hover:bg-white/[0.04]"
             onClick={() => setCards([...cards, { title: "", body: "" }])}
           >
             {t("comparisonAdmin.addCard")}
@@ -255,7 +255,7 @@ export const ComparisonVisualEditor = forwardRef<
         </div>
         <div className="space-y-3">
           {cards.map((card, i) => (
-            <div key={i} className="rounded-lg border border-purple-500/20 p-3 space-y-2">
+            <div key={i} className="rounded-lg border border-admin-border/90 p-3 space-y-2">
               <div className="flex justify-end">
                 <button type="button" className="text-xs text-rose-400 hover:underline" onClick={() => setCards(cards.filter((_, j) => j !== i))}>
                   {t("comparisonAdmin.remove")}
@@ -291,19 +291,19 @@ export const ComparisonVisualEditor = forwardRef<
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-cyan-300">{t("comparisonAdmin.sectionMatrix")}</h2>
+        <h2 className="text-sm font-semibold text-admin-accent">{t("comparisonAdmin.sectionMatrix")}</h2>
         <p className="text-xs text-gray-500">{t("comparisonAdmin.matrixHint")}</p>
         <label className="block space-y-1 text-xs text-amber-200/90">
           features
-          <textarea className="w-full min-h-[200px] font-mono text-xs rounded-lg border border-purple-500/25 bg-[#0a0118] p-2 text-gray-100" spellCheck={false} value={featText} onChange={(e) => setFeatText(e.target.value)} />
+          <textarea className="w-full min-h-[200px] font-mono text-xs rounded-lg border border-admin-border/90 bg-admin-bg p-2 text-gray-100" spellCheck={false} value={featText} onChange={(e) => setFeatText(e.target.value)} />
         </label>
         <label className="block space-y-1 text-xs text-amber-200/90">
           pros
-          <textarea className="w-full min-h-[120px] font-mono text-xs rounded-lg border border-purple-500/25 bg-[#0a0118] p-2 text-gray-100" spellCheck={false} value={prosText} onChange={(e) => setProsText(e.target.value)} />
+          <textarea className="w-full min-h-[120px] font-mono text-xs rounded-lg border border-admin-border/90 bg-admin-bg p-2 text-gray-100" spellCheck={false} value={prosText} onChange={(e) => setProsText(e.target.value)} />
         </label>
         <label className="block space-y-1 text-xs text-amber-200/90">
           cons
-          <textarea className="w-full min-h-[120px] font-mono text-xs rounded-lg border border-purple-500/25 bg-[#0a0118] p-2 text-gray-100" spellCheck={false} value={consText} onChange={(e) => setConsText(e.target.value)} />
+          <textarea className="w-full min-h-[120px] font-mono text-xs rounded-lg border border-admin-border/90 bg-admin-bg p-2 text-gray-100" spellCheck={false} value={consText} onChange={(e) => setConsText(e.target.value)} />
         </label>
       </section>
     </div>

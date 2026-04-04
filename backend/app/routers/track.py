@@ -30,6 +30,50 @@ class TrackBody(BaseModel):
     dwell_seconds: Optional[float] = None
 
 
+class OutboundClickBody(BaseModel):
+    tool_slug: str  # 与 tool.slug、前台路由 /tool/:id 一致
+    page_path: str  # 触发页 path，如 /tool/foo
+
+
+@router.post("/track/outbound")
+def track_outbound_official_click(
+    body: OutboundClickBody,
+    request: Request,
+    response: Response,
+    user_id: Optional[int] = Depends(get_optional_user_id),
+) -> dict[str, Any]:
+    """记录工具详情页「访问官网」出站意向；与 PROD-CRAWLER 无关。未识别会话时下发 track_sid 与 PV 埋点一致。"""
+    sid = request.cookies.get("track_sid")  # 与 /track 共用会话 cookie
+    if not sid:  # 无则签发
+        sid = str(uuid.uuid4())  # 新会话 id
+        response.set_cookie(  # 属性与 page_view 一致
+            key="track_sid",  # 键名
+            value=sid,  # 值
+            httponly=True,  # 脚本不可读
+            samesite="lax",  # 同站策略
+            max_age=60 * 60 * 24 * 365,  # 一年
+        )
+    slug = (body.tool_slug or "").strip()[:256]  # 防超长
+    ppath = (body.page_path or "").strip()[:2048] or "/"  # 默认根路径
+    if not slug:  # 无效请求静默成功，避免被用于探测
+        return {"ok": True}  # 不落库
+    with get_db() as conn:  # 短连接
+        hit = conn.execute(  # 仅统计已上架工具，减少垃圾行
+            "SELECT 1 FROM tool WHERE slug = ? AND moderation_status = 'active' LIMIT 1",
+            (slug,),
+        ).fetchone()  # 是否存在
+        if not hit:  # 未知或下架
+            return {"ok": True}  # 仍 200，不泄露 slug 是否存在
+        conn.execute(  # 插入出站点击
+            """INSERT INTO outbound_click_log
+               (tool_slug, page_path, session_id, user_id)
+               VALUES (?, ?, ?, ?)""",
+            (slug, ppath, sid, user_id),  # 登录用户可空
+        )
+        conn.commit()  # 提交
+    return {"ok": True}  # 成功
+
+
 @router.post("/track")
 def track_page_view(
     body: TrackBody,

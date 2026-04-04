@@ -421,6 +421,8 @@
       {"id": "adm-seo", "key": "sidebar.pageSeo", "label": "Page SEO", "path": "/admin/page-seo", "icon": "Search", "permission": "", "visible": true, "order": 6},
       {"id": "adm-tool-jsonld", "key": "sidebar.toolJsonLd", "label": "Tool JSON-LD", "path": "/admin/tool-json-ld", "icon": "Braces", "permission": "", "visible": true, "order": 13},
       {"id": "adm-blocks", "key": "sidebar.siteBlocks", "label": "Site JSON", "path": "/admin/site-blocks", "icon": "Code2", "permission": "", "visible": true, "order": 7},
+      {"id": "adm-site-submit", "key": "sidebar.siteSubmitForm", "label": "Submit page blocks", "path": "/admin/site-submit", "icon": "ClipboardList", "permission": "", "visible": true, "order": 9},
+      {"id": "adm-site-dash", "key": "sidebar.siteDashboardForm", "label": "Dashboard blocks", "path": "/admin/site-dashboard", "icon": "LayoutTemplate", "permission": "", "visible": true, "order": 10},
       {"id": "adm-home-seo", "key": "sidebar.homeSeoForm", "label": "Home SEO", "path": "/admin/home-seo", "icon": "Search", "permission": "", "visible": true, "order": 15},
       {"id": "adm-i18n", "key": "sidebar.translations", "label": "Translations", "path": "/admin/translations", "icon": "Languages", "permission": "", "visible": true, "order": 16},
       {"id": "adm-comp", "key": "sidebar.comparisons", "label": "Comparisons", "path": "/admin/comparisons", "icon": "GitCompare", "permission": "", "visible": true, "order": 17},

@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
               title={t("fieldHelp.settings.scopeAdmin")}
               onClick={() => setMenuScope("admin")}
               className={`px-3 py-1.5 rounded-lg text-xs ${
-                menuScope === "admin" ? "bg-purple-500/35 text-white" : "bg-white/5 text-gray-400"
+                menuScope === "admin" ? "bg-white/10 text-white" : "bg-white/5 text-gray-400"
               }`}
             >
               {t("settings.scopeAdmin")}
@@ -154,7 +154,7 @@ export default function AdminSettingsPage() {
               title={t("fieldHelp.settings.scopeFrontend")}
               onClick={() => setMenuScope("frontend")}
               className={`px-3 py-1.5 rounded-lg text-xs ${
-                menuScope === "frontend" ? "bg-purple-500/35 text-white" : "bg-white/5 text-gray-400"
+                menuScope === "frontend" ? "bg-white/10 text-white" : "bg-white/5 text-gray-400"
               }`}
             >
               {t("settings.scopeFrontend")}
@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="px-3 py-2 rounded-lg bg-cyan-600 text-white text-sm"
+              className="px-3 py-2 rounded-lg bg-admin-btn text-white text-sm"
             >
               {t("settings.addMenu")}
             </button>
@@ -172,9 +172,9 @@ export default function AdminSettingsPage() {
         <FieldHint text={t("fieldHelp.settings.menuTitle")} />
       </div>
 
-      <div className="rounded-xl border border-purple-500/20 overflow-hidden">
+      <div className="rounded-xl border border-admin-border/90 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#120822] text-left text-gray-400">
+          <thead className="bg-admin-surface text-left text-gray-400">
             <tr>
               <ThHelp title={t("settings.colOrder")} help={t("fieldHelp.settings.colOrder")} />
               <ThHelp title={t("settings.colKey")} help={t("fieldHelp.settings.colKey")} />
@@ -186,11 +186,11 @@ export default function AdminSettingsPage() {
               <ThHelp title={t("settings.colActions")} help={t("fieldHelp.settings.colActions")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {sorted.map((it) => (
               <tr key={it.id} className="hover:bg-white/[0.03]">
                 <td className="p-3 tabular-nums">{it.order}</td>
-                <td className="p-3 font-mono text-cyan-100">{it.key}</td>
+                <td className="p-3 font-mono text-gray-200">{it.key}</td>
                 <td className="p-3 text-gray-200">{it.label}</td>
                 <td className="p-3 font-mono text-xs text-gray-400">{it.path}</td>
                 <td className="p-3">{it.icon}</td>
@@ -200,7 +200,7 @@ export default function AdminSettingsPage() {
                   <button
                     type="button"
                     onClick={() => openEdit(it)}
-                    className="px-2 py-1 rounded bg-purple-500/25 text-purple-100 text-xs"
+                    className="px-2 py-1 rounded bg-admin-highlight text-gray-200 text-xs"
                   >
                     {t("settings.editMenu")}
                   </button>
@@ -230,7 +230,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={() => save.mutate()}
           disabled={save.isPending}
-          className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm disabled:opacity-50"
+          className="px-4 py-2 rounded-lg bg-admin-btn text-white text-sm disabled:opacity-50"
         >
           {save.isPending ? t("settings.saving") : t("settings.save")}
         </button>
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
 
       {draft.id && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-xl border border-purple-500/30 bg-[#120822] p-5 space-y-4">
+          <div className="w-full max-w-xl rounded-xl border border-admin-border bg-admin-surface p-5 space-y-4">
             <h3 className="text-lg text-white">
               {editing ? t("settings.editMenu") : t("settings.addMenu")} ·{" "}
               {menuScope === "admin" ? t("settings.scopeAdmin") : t("settings.scopeFrontend")}
@@ -254,7 +254,7 @@ export default function AdminSettingsPage() {
                   onChange={(e) => setDraft((d) => ({ ...d, order: Number(e.target.value || 0) }))}
                   type="number"
                   placeholder={t("settings.colOrder")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <div>
@@ -263,7 +263,7 @@ export default function AdminSettingsPage() {
                   value={draft.key}
                   onChange={(e) => setDraft((d) => ({ ...d, key: e.target.value }))}
                   placeholder={t("settings.colKey")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <div>
@@ -272,7 +272,7 @@ export default function AdminSettingsPage() {
                   value={draft.label}
                   onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))}
                   placeholder={t("settings.colLabel")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <div>
@@ -281,7 +281,7 @@ export default function AdminSettingsPage() {
                   value={draft.path}
                   onChange={(e) => setDraft((d) => ({ ...d, path: e.target.value }))}
                   placeholder={t("settings.colPath")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <div>
@@ -290,7 +290,7 @@ export default function AdminSettingsPage() {
                   value={draft.icon}
                   onChange={(e) => setDraft((d) => ({ ...d, icon: e.target.value }))}
                   placeholder={t("settings.colIcon")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <div>
@@ -299,7 +299,7 @@ export default function AdminSettingsPage() {
                   value={draft.permission}
                   onChange={(e) => setDraft((d) => ({ ...d, permission: e.target.value }))}
                   placeholder={t("settings.colPermission")}
-                  className="mt-1 w-full rounded-lg bg-black/40 border border-purple-500/25 px-3 py-2 text-sm text-gray-200"
+                  className="mt-1 w-full rounded-lg bg-black/40 border border-admin-border/90 px-3 py-2 text-sm text-gray-200"
                 />
               </div>
               <label className="flex flex-col gap-1 text-sm text-gray-300 md:col-span-2">
@@ -325,7 +325,7 @@ export default function AdminSettingsPage() {
               <button
                 type="button"
                 onClick={submitModal}
-                className="px-3 py-2 rounded-lg bg-cyan-600 text-white text-sm"
+                className="px-3 py-2 rounded-lg bg-admin-btn text-white text-sm"
               >
                 {t("settings.confirm")}
               </button>

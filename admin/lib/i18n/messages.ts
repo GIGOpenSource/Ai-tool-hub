@@ -29,6 +29,14 @@ type MsgTree = {
     searchSuggestions: string;
     /** 工具详情 JSON-LD：site_json.seo_tool_json_ld */
     toolJsonLd: string;
+    /** 提交页 site_json.submit 分字段 */
+    siteSubmitForm: string;
+    /** 仪表盘 site_json.dashboard 分字段 */
+    siteDashboardForm: string;
+    /** PROD-AI-SEO：大模型 SEO/流量分析 */
+    aiSeoInsights: string;
+    /** PROD-CRAWLER：JSON 订阅导入工具目录 */
+    crawlerData: string;
   };
   header: {
     console: string;
@@ -278,6 +286,76 @@ type MsgTree = {
     success: string;
     loading: string;
   };
+  aiSeoInsights: {
+    title: string;
+    subtitle: string;
+    costHint: string;
+    slowHint: string;
+    tabRun: string;
+    tabProvider: string;
+    tabConfigs: string;
+    tabHistory: string;
+    selectConfig: string;
+    run: string;
+    running: string;
+    output: string;
+    noOutput: string;
+    baseUrl: string;
+    model: string;
+    timeout: string;
+    temperature: string;
+    extraHeaders: string;
+    apiKeyPlaceholder: string;
+    apiKeyEnvName: string;
+    saveProvider: string;
+    saving: string;
+    savedProvider: string;
+    errProvider: string;
+    configName: string;
+    systemPrompt: string;
+    userTemplate: string;
+    placeholdersHint: string;
+    defaultConfig: string;
+    addConfig: string;
+    saveConfig: string;
+    deleteConfig: string;
+    colTime: string;
+    colAdmin: string;
+    colConfig: string;
+    colModel: string;
+    colStatus: string;
+    colSummary: string;
+    statusOk: string;
+    statusFail: string;
+    viewDetail: string;
+    runDetailTitle: string;
+    back: string;
+    deleteRun: string;
+    inputPayload: string;
+    promptSnapshot: string;
+    providerSnapshot: string;
+    errMessage: string;
+    duration: string;
+    tokens: string;
+    loading: string;
+    errRun: string;
+    confirmDeleteRun: string;
+    confirmDeleteConfig: string;
+    /** 分析页：选用哪条大模型连接 */
+    selectLlmProvider: string;
+    /** 连接显示名（如 OpenAI / 通义） */
+    llmProviderName: string;
+    /** 大模型 Tab 说明 */
+    providerTabIntro: string;
+    addLlmProvider: string;
+    saveLlmProvider: string;
+    deleteLlmProvider: string;
+    confirmDeleteLlmProvider: string;
+    savedLlmProvider: string;
+    errLastProvider: string;
+    /** 勾选后作为「默认启用」的大模型连接（分析未指定时用） */
+    defaultLlmProvider: string;
+  };
   siteJson: {
     title: string;
     subtitle: string;
@@ -388,6 +466,10 @@ export const messages: Record<AdminLocale, MsgTree> = {
       comparisons: "对比页",
       searchSuggestions: "搜索联想",
       toolJsonLd: "工具 JSON-LD",
+      siteSubmitForm: "提交页内容",
+      siteDashboardForm: "仪表盘内容",
+      aiSeoInsights: "AI SEO 分析",
+      crawlerData: "数据采集",
     },
     header: {
       console: "管理控制台",
@@ -636,6 +718,74 @@ export const messages: Record<AdminLocale, MsgTree> = {
       success: "已保存",
       loading: "加载中…",
     },
+    aiSeoInsights: {
+      title: "AI SEO 与流量分析",
+      subtitle:
+        "服务端拉取 page_seo、home_seo、sitemap/robots 摘要与近 7 日流量聚合，与提示词一并 POST 至可配置的大模型；返回纯文本建议并记入历史。",
+      costHint: "调用第三方大模型可能产生费用；生产环境请妥善保管 API Key。",
+      slowHint: "单次分析可能需数十秒，请勿重复点击。",
+      tabRun: "开始分析",
+      tabProvider: "大模型连接",
+      tabConfigs: "提示词配置",
+      tabHistory: "历史记录",
+      selectConfig: "选用配置",
+      run: "开始分析",
+      running: "分析中…",
+      output: "本次输出",
+      noOutput: "尚无输出，点击开始分析。",
+      baseUrl: "API Base URL",
+      model: "模型名",
+      timeout: "超时（秒）",
+      temperature: "temperature",
+      extraHeaders: "额外 HTTP 头（JSON 对象）",
+      apiKeyPlaceholder: "新 API Key（留空表示不修改库内密钥）",
+      apiKeyEnvName: "优先从环境变量读密钥（变量名，可空）",
+      saveProvider: "保存连接设置",
+      saving: "保存中…",
+      savedProvider: "已保存连接设置",
+      errProvider: "保存失败",
+      configName: "配置名称",
+      systemPrompt: "系统消息（system）",
+      userTemplate:
+        "用户消息模板（支持 {{seo_snapshot}} {{seo_indexing_snapshot}}；旧名 {{crawler_snapshot}} 仍兼容 {{traffic_snapshot}} {{site_stats_snapshot}}）",
+      placeholdersHint: "仅允许上述四个占位符；未知 {{}} 将无法保存。",
+      defaultConfig: "设为默认",
+      addConfig: "新增配置",
+      saveConfig: "保存本配置",
+      deleteConfig: "删除",
+      colTime: "时间",
+      colAdmin: "操作者",
+      colConfig: "配置",
+      colModel: "模型",
+      colStatus: "状态",
+      colSummary: "摘要",
+      statusOk: "成功",
+      statusFail: "失败",
+      viewDetail: "详情",
+      runDetailTitle: "分析记录详情",
+      back: "返回列表",
+      deleteRun: "删除此记录",
+      inputPayload: "注入数据摘要（JSON）",
+      promptSnapshot: "提示词快照（JSON）",
+      providerSnapshot: "模型连接快照（JSON）",
+      errMessage: "错误信息",
+      duration: "耗时",
+      tokens: "Token（入/出）",
+      loading: "加载中…",
+      errRun: "分析失败",
+      confirmDeleteRun: "确定删除该条记录？",
+      confirmDeleteConfig: "确定删除该提示词配置？",
+      selectLlmProvider: "大模型连接（* 为当前默认启用）",
+      llmProviderName: "连接名称",
+      providerTabIntro: "可配置多套 API 地址与模型；勾选「默认启用」的分析将使用该连接（未指定时）。分析页可临时改选其他连接。",
+      addLlmProvider: "新增连接",
+      saveLlmProvider: "保存本条连接",
+      deleteLlmProvider: "删除本条",
+      confirmDeleteLlmProvider: "确定删除该大模型连接？至少保留一条。",
+      savedLlmProvider: "已保存",
+      errLastProvider: "至少保留一条大模型连接",
+      defaultLlmProvider: "默认启用此连接（分析页未改选时优先使用）",
+    },
     siteJson: {
       title: "站点内容块（JSON）",
       subtitle:
@@ -755,6 +905,10 @@ export const messages: Record<AdminLocale, MsgTree> = {
       comparisons: "Comparison pages",
       searchSuggestions: "Search suggestions",
       toolJsonLd: "Tool JSON-LD",
+      siteSubmitForm: "Submit page blocks",
+      siteDashboardForm: "Dashboard blocks",
+      aiSeoInsights: "AI SEO insights",
+      crawlerData: "Data import",
     },
     header: {
       console: "Management console",
@@ -1002,6 +1156,75 @@ export const messages: Record<AdminLocale, MsgTree> = {
       errSave: "Save failed",
       success: "Saved",
       loading: "Loading…",
+    },
+    aiSeoInsights: {
+      title: "AI SEO & traffic insights",
+      subtitle:
+        "The server builds snapshots from page_seo, home_seo, sitemap/robots and 7-day traffic aggregates, sends them with your prompt to a configurable LLM API, stores plain-text advice and history.",
+      costHint: "External LLM calls may incur cost; protect API keys in production.",
+      slowHint: "One run may take tens of seconds; avoid double clicks.",
+      tabRun: "Run analysis",
+      tabProvider: "LLM connection",
+      tabConfigs: "Prompt configs",
+      tabHistory: "History",
+      selectConfig: "Config",
+      run: "Run analysis",
+      running: "Running…",
+      output: "Output",
+      noOutput: "No output yet. Click run.",
+      baseUrl: "API base URL",
+      model: "Model",
+      timeout: "Timeout (seconds)",
+      temperature: "temperature",
+      extraHeaders: "Extra HTTP headers (JSON object)",
+      apiKeyPlaceholder: "New API key (leave empty to keep stored key)",
+      apiKeyEnvName: "Optional env var name for API key",
+      saveProvider: "Save connection",
+      saving: "Saving…",
+      savedProvider: "Connection saved",
+      errProvider: "Save failed",
+      configName: "Config name",
+      systemPrompt: "System message",
+      userTemplate:
+        "User template ({{seo_snapshot}} {{seo_indexing_snapshot}}; legacy {{crawler_snapshot}} alias {{traffic_snapshot}} {{site_stats_snapshot}})",
+      placeholdersHint: "Only the four placeholders above are allowed.",
+      defaultConfig: "Set as default",
+      addConfig: "Add config",
+      saveConfig: "Save this config",
+      deleteConfig: "Delete",
+      colTime: "Time",
+      colAdmin: "Admin",
+      colConfig: "Config",
+      colModel: "Model",
+      colStatus: "Status",
+      colSummary: "Summary",
+      statusOk: "OK",
+      statusFail: "Failed",
+      viewDetail: "Detail",
+      runDetailTitle: "Run detail",
+      back: "Back to list",
+      deleteRun: "Delete this run",
+      inputPayload: "Input summary (JSON)",
+      promptSnapshot: "Prompt snapshot (JSON)",
+      providerSnapshot: "Provider snapshot (JSON)",
+      errMessage: "Error",
+      duration: "Duration",
+      tokens: "Tokens (in/out)",
+      loading: "Loading…",
+      errRun: "Analysis failed",
+      confirmDeleteRun: "Delete this run record?",
+      confirmDeleteConfig: "Delete this prompt config?",
+      selectLlmProvider: "LLM connection (* = default for analysis)",
+      llmProviderName: "Connection name",
+      providerTabIntro:
+        "Add multiple API bases/models; mark one as default for runs when no provider is picked. The Run tab can override per request.",
+      addLlmProvider: "Add connection",
+      saveLlmProvider: "Save this connection",
+      deleteLlmProvider: "Delete",
+      confirmDeleteLlmProvider: "Delete this LLM connection? At least one must remain.",
+      savedLlmProvider: "Saved",
+      errLastProvider: "At least one LLM connection is required",
+      defaultLlmProvider: "Use as default connection (when Run tab does not pick another)",
     },
     siteJson: {
       title: "Site content blocks (JSON)",

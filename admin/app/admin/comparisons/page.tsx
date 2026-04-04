@@ -117,9 +117,9 @@ export default function AdminComparisonsPage() {
       <h1 className="text-2xl font-semibold text-white">{t("comparisonAdmin.title")}</h1>
       <p className="text-sm text-gray-500">{t("comparisonAdmin.subtitle")}</p>
 
-      <details className="rounded-xl border border-purple-500/25 bg-purple-950/15 p-4 text-xs text-gray-300 max-w-4xl"> {/* 折叠：中英随语言切换 */}
+      <details className="rounded-xl border border-admin-border/90 bg-zinc-900/30 p-4 text-xs text-gray-300 max-w-4xl"> {/* 折叠：中英随语言切换 */}
         <summary className="cursor-pointer text-gray-200 font-medium select-none">{t("comparisonAdmin.referenceTitle")}</summary> {/* 摘要 */}
-        <div className="mt-3 space-y-2 leading-relaxed border-t border-purple-500/15 pt-3"> {/* 对照正文区 */}
+        <div className="mt-3 space-y-2 leading-relaxed border-t border-white/[0.06] pt-3"> {/* 对照正文区 */}
           <p>{t("comparisonAdmin.refIntro")}</p> {/* 总述 */}
           <p>
             <span className="text-gray-500 font-mono">mainTool</span>
@@ -158,7 +158,7 @@ export default function AdminComparisonsPage() {
         {t("comparisonAdmin.slugLabel")}
         <input
           list="admin-comparison-slugs"
-          className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white"
+          className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white"
           placeholder={t("comparisonAdmin.slugPlaceholder")}
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
@@ -176,10 +176,10 @@ export default function AdminComparisonsPage() {
 
       {slug && (!isLoading || is404 || one) ? (
         <>
-          <div className="flex gap-2 border-b border-purple-500/20 pb-2">
+          <div className="flex gap-2 border-b border-admin-border/90 pb-2">
             <button
               type="button"
-              className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "visual" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
+              className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "visual" ? "bg-admin-btn text-white" : "text-gray-400 hover:text-white"}`}
               onClick={() => {
                 if (editMode === "json") {
                   try {
@@ -202,7 +202,7 @@ export default function AdminComparisonsPage() {
             </button>
             <button
               type="button"
-              className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "json" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
+              className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "json" ? "bg-admin-btn text-white" : "text-gray-400 hover:text-white"}`}
               onClick={() => {
                 if (editMode === "visual") {
                   const merged = visualRef.current?.buildPayloadForSave(); // 带矩阵
@@ -226,7 +226,7 @@ export default function AdminComparisonsPage() {
             <ComparisonVisualEditor ref={visualRef} draft={draft} onChange={setDraft} syncSig={serverSyncSig} />
           ) : (
             <textarea
-              className="w-full min-h-[420px] font-mono text-sm rounded-xl border border-purple-500/25 bg-[#0a011890] p-4 text-gray-100"
+              className="w-full min-h-[420px] font-mono text-sm rounded-xl border border-admin-border/90 bg-admin-bg/90 p-4 text-gray-100"
               spellCheck={false}
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
@@ -249,7 +249,7 @@ export default function AdminComparisonsPage() {
           }
           save.mutate();
         }}
-        className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {save.isPending ? t("comparisonAdmin.saving") : t("comparisonAdmin.save")}
       </button>

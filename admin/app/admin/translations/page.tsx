@@ -89,7 +89,7 @@ export default function AdminTranslationsPage() {
         <label className="text-xs text-gray-400">
           filter locale
           <input
-            className="ml-2 rounded border border-purple-500/30 bg-[#0a011890] px-2 py-1 text-sm text-white"
+            className="ml-2 rounded border border-admin-border bg-admin-bg/90 px-2 py-1 text-sm text-white"
             value={filterLocale}
             onChange={(e) => setFilterLocale(e.target.value)}
             placeholder="en | zh | …"
@@ -97,26 +97,26 @@ export default function AdminTranslationsPage() {
         </label>
       </div>
 
-      <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/10 p-4 space-y-3 max-w-3xl">
-        <p className="text-xs text-gray-400 font-medium text-cyan-200/90">{L("批量导入/导出", "Bulk import / export")}</p>
+      <div className="rounded-xl border border-admin-border/90 bg-zinc-900/25 p-4 space-y-3 max-w-3xl">
+        <p className="text-xs text-gray-400 font-medium text-gray-300/90">{L("批量导入/导出", "Bulk import / export")}</p>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded-lg border border-cyan-500/40 px-3 py-1.5 text-sm text-cyan-200 hover:bg-cyan-500/10"
+            className="rounded-lg border border-admin-border px-3 py-1.5 text-sm text-gray-300 hover:bg-white/[0.04]"
             onClick={() => void exportJson().catch((e) => setBulkMsg(String(e)))}
           >
             {L("导出 JSON", "Export JSON")}
           </button>
           <button
             type="button"
-            className="rounded-lg border border-cyan-500/40 px-3 py-1.5 text-sm text-cyan-200 hover:bg-cyan-500/10"
+            className="rounded-lg border border-admin-border px-3 py-1.5 text-sm text-gray-300 hover:bg-white/[0.04]"
             onClick={() => void exportNdjson().catch((e) => setBulkMsg(String(e)))}
           >
             {L("导出 NDJSON", "Export NDJSON")}
           </button>
           <button
             type="button"
-            className="rounded-lg border border-purple-500/40 px-3 py-1.5 text-sm text-purple-200 hover:bg-purple-500/10"
+            className="rounded-lg border border-admin-border px-3 py-1.5 text-sm text-gray-300 hover:bg-white/[0.05]"
             onClick={() => fileRef.current?.click()}
           >
             {L("选择文件导入…", "Choose file to import…")}
@@ -172,7 +172,7 @@ export default function AdminTranslationsPage() {
         <label className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
           {L("导入前删除整语言（可选，填 locale）", "Delete locale before import (optional)")}
           <input
-            className="rounded border border-purple-500/30 bg-[#0a011890] px-2 py-1 text-sm text-white w-28"
+            className="rounded border border-admin-border bg-admin-bg/90 px-2 py-1 text-sm text-white w-28"
             value={replaceLocale}
             onChange={(e) => setReplaceLocale(e.target.value)}
             placeholder="en"
@@ -181,23 +181,23 @@ export default function AdminTranslationsPage() {
         {bulkMsg && <p className="text-xs text-emerald-300/90">{bulkMsg}</p>}
       </div>
 
-      <div className="rounded-xl border border-purple-500/20 p-4 space-y-2 bg-[#0a011890]">
+      <div className="rounded-xl border border-admin-border/90 p-4 space-y-2 bg-admin-bg/90">
         <p className="text-xs text-gray-400">{L("新增/更新", "Add / update")}</p>
         <div className="grid md:grid-cols-3 gap-2">
           <input
-            className="rounded border border-purple-500/30 bg-[#120822] px-2 py-1 text-sm text-white"
+            className="rounded border border-admin-border bg-admin-surface px-2 py-1 text-sm text-white"
             placeholder="locale"
             value={edit.locale}
             onChange={(e) => setEdit({ ...edit, locale: e.target.value })}
           />
           <input
-            className="rounded border border-purple-500/30 bg-[#120822] px-2 py-1 text-sm text-white"
+            className="rounded border border-admin-border bg-admin-surface px-2 py-1 text-sm text-white"
             placeholder="msg_key"
             value={edit.msg_key}
             onChange={(e) => setEdit({ ...edit, msg_key: e.target.value })}
           />
           <input
-            className="rounded border border-purple-500/30 bg-[#120822] px-2 py-1 text-sm text-white md:col-span-3"
+            className="rounded border border-admin-border bg-admin-surface px-2 py-1 text-sm text-white md:col-span-3"
             placeholder="msg_value"
             value={edit.msg_value}
             onChange={(e) => setEdit({ ...edit, msg_value: e.target.value })}
@@ -207,7 +207,7 @@ export default function AdminTranslationsPage() {
           type="button"
           disabled={save.isPending}
           onClick={() => save.mutate()}
-          className="rounded-lg bg-cyan-700/80 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-admin-btn/90 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {L("保存", "Save")}
         </button>
@@ -217,9 +217,9 @@ export default function AdminTranslationsPage() {
       {isLoading && <p className="text-gray-500 text-sm">…</p>}
       {prettyError && <p className="text-rose-400 text-sm">{prettyError}</p>}
 
-      <div className="overflow-auto rounded-xl border border-purple-500/20">
+      <div className="overflow-auto rounded-xl border border-admin-border/90">
         <table className="min-w-full text-sm text-left text-gray-200">
-          <thead className="bg-purple-900/30 text-xs text-gray-400">
+          <thead className="bg-admin-surface/90 text-xs text-gray-400">
             <tr>
               <th className="px-3 py-2">locale</th>
               <th className="px-3 py-2">msg_key</th>
@@ -229,7 +229,7 @@ export default function AdminTranslationsPage() {
           </thead>
           <tbody>
             {(data?.items ?? []).map((r) => (
-              <tr key={`${r.locale}\0${r.msg_key}`} className="border-t border-purple-500/10">
+              <tr key={`${r.locale}\0${r.msg_key}`} className="border-t border-white/[0.05]">
                 <td className="px-3 py-2 font-mono text-xs">{r.locale}</td>
                 <td className="px-3 py-2 font-mono text-xs max-w-[200px] truncate" title={r.msg_key}>
                   {r.msg_key}
@@ -249,7 +249,7 @@ export default function AdminTranslationsPage() {
                   </button>
                   <button
                     type="button"
-                    className="text-cyan-400 text-xs ml-2 hover:underline"
+                    className="text-admin-link text-xs ml-2 hover:underline"
                     onClick={() => setEdit({ locale: r.locale, msg_key: r.msg_key, msg_value: r.msg_value })}
                   >
                     {L("编辑", "Edit")}

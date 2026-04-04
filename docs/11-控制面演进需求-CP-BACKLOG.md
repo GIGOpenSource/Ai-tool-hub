@@ -10,7 +10,7 @@
 | 维度 | 说明 |
 |------|------|
 | **目标** | 降低整包 JSON 误改风险，常用键用表单维护。 |
-| **已实现** | **`submit`** → 管理端 **`/admin/site-submit`**（分类/pricing/ui 分栏，其余顶层键保留合并）。**`dashboard`** → **`/admin/site-dashboard`**（徽章、摘要数字、图表序列、ui 等分栏）。其余白名单键仍走 **`/admin/site-blocks`**（可视化 + JSON 双模式，见 `SiteJsonVisualEditor`）。 |
+| **已实现** | **`submit`** → **`/admin/site-submit`**；**`dashboard`** → **`/admin/site-dashboard`**（分栏编辑，详见各页）。侧栏 **fallback**、**`migrate` 幂等补菜单** 与 **空库种子 `admin_settings.admin_menu_items`** 已含上述路径与 **`sidebar.siteSubmitForm` / `sidebar.siteDashboardForm`** i18n 键。其余白名单键仍走 **`/admin/site-blocks`**（可视化 + JSON 双模式）。 |
 | **缺口** | `guide`、`more`、`profile` 等大块仍依赖站点 JSON 或整段编辑；若需「每键一套表单」按页面分别立项。 |
 | **建议状态** | **部分已落地**；关闭「全键分字段」需产品列优先级后再排期。 |
 
@@ -53,6 +53,17 @@
 ## 与商业化后续（CP-MONET-RE）的关系
 
 **续购、强曝光、法务话术**等仍以 [10-需求-商业化与订单.md](./10-需求-商业化与订单.md) 与 **03 §4.1** 为准，不在本文展开。
+
+---
+
+## CP-AI-SEO：AI SEO 与流量分析助手
+
+| 维度 | 说明 |
+|------|------|
+| **目标** | 管理端**一键分析**：服务端组装**可配置提示词**与 **SEO / 流量数据快照**，调用**可配置大模型 API**，返回**纯文本建议**；保留**分析记录列表**与**详情**（含提示词与模型快照，不含密钥）。 |
+| **已实现** | **MVP**：表 **`ai_insight_*`**、**`/api/admin/ai-insights/*`**、**`ai_insight_service`**（OpenAI 兼容 **chat/completions**）、管理端 **`/admin/ai-seo-insights`** 与 **`/runs/[id]`**、侧栏 **`migrate` 幂等补菜单**、环境变量 **`AI_INSIGHT_LLM_API_KEY`** 优先。 |
+| **缺口** | 异步任务队列、多供应商适配器、费用估算展示、更细保留策略等（见 **12** §8～9）。 |
+| **建议状态** | **MVP 已落地**；进阶项另开工单。需求与验收见 [**12-需求-AI-SEO与流量分析助手.md**](./12-需求-AI-SEO与流量分析助手.md)（**PROD-AI-SEO**）。 |
 
 ---
 

@@ -95,6 +95,25 @@ export async function apiPostAnonymous<T, B extends object>(
   return res.json();
 }
 
+/**
+ * 工具详情「访问官网」出站点击埋点；失败静默，不阻塞跳转。
+ * 与 /api/track 共用 track_sid Cookie；无需 JWT。
+ */
+export function trackOutboundOfficialClick(toolSlug: string, pagePath: string): void {
+  const url = `${base}/api/track/outbound`; // 与后端路由一致
+  const body = JSON.stringify({ tool_slug: toolSlug, page_path: pagePath }); // JSON 正文
+  void fetch(url, {
+    // 不 await：尽快打开外链
+    method: "POST", // 创建一条出站记录
+    headers: { "Content-Type": "application/json" }, // 声明 JSON
+    body, // slug 与当前 path
+    credentials: "include", // 携带 track_sid
+    keepalive: true, // 页面卸载后仍尽量送达
+  }).catch(() => {
+    /* 埋点失败不影响用户 */
+  });
+}
+
 /** PUT JSON，登录态保存用户偏好等 */
 export async function apiPut<T, B extends object>(path: string, body: B): Promise<T> {
   const res = await fetch(`${base}${path}`, {

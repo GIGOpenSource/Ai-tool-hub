@@ -94,7 +94,8 @@ export default function AdminMonetizationPage() {
     },
   });
 
-  const rows = ordersQuery.data?.data ?? [];
+  // 用 useMemo 稳定空数组引用，避免 data 未就绪时每帧新 [] 触发 effect 依赖抖动（exhaustive-deps）
+  const rows = useMemo(() => ordersQuery.data?.data ?? [], [ordersQuery.data]);
 
   useEffect(() => {
     setExtendUntil((prev) => {
@@ -185,7 +186,7 @@ export default function AdminMonetizationPage() {
             type="button"
             onClick={exportCsv}
             disabled={ordersQuery.isLoading || rows.length === 0}
-            className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg border border-admin-border/90 bg-white/[0.04] px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.07] disabled:opacity-40"
           >
             <Download className="w-4 h-4" />
             {t("monet.exportCsv")}
@@ -227,7 +228,7 @@ export default function AdminMonetizationPage() {
             type="button"
             onClick={() => setStatus(tab.key)}
             className={`px-3 py-1.5 rounded-lg text-xs ${
-              statusFilter === tab.key ? "bg-purple-500/35 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"
+              statusFilter === tab.key ? "bg-white/10 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"
             }`}
           >
             {tab.label}
@@ -238,9 +239,9 @@ export default function AdminMonetizationPage() {
       {flash === "ok" ? <p className="text-sm text-emerald-400">{t("monet.patchOk")}</p> : null}
       {flash === "err" ? <p className="text-sm text-rose-400">{t("monet.patchErr")}</p> : null}
 
-      <div className="rounded-xl border border-purple-500/20 overflow-x-auto">
+      <div className="rounded-xl border border-admin-border/90 overflow-x-auto">
         <table className="w-full text-sm min-w-[1100px]">
-          <thead className="bg-[#120822] text-gray-400 text-left">
+          <thead className="bg-admin-surface text-gray-400 text-left">
             <tr>
               <ThHelp title={t("monet.colOrder")} help={t("fieldHelp.monet.colOrder")} />
               <ThHelp title={t("monet.colTool")} help={t("fieldHelp.monet.colTool")} />
@@ -256,7 +257,7 @@ export default function AdminMonetizationPage() {
               <ThHelp title={t("monet.colActions")} help={t("fieldHelp.monet.colActions")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {ordersQuery.isLoading && (
               <tr>
                 <td colSpan={12} className="p-4 text-gray-500">
@@ -278,7 +279,7 @@ export default function AdminMonetizationPage() {
                   <td className="p-2">
                     <div className="text-gray-100">{r.tool_name}</div>
                     <div className="text-[10px] text-gray-500 font-mono">{r.tool_slug}</div>
-                    <Link href={`/admin/tools/${r.tool_id}/edit`} className="text-[11px] text-cyan-400 hover:underline">
+                    <Link href={`/admin/tools/${r.tool_id}/edit`} className="text-[11px] text-admin-link hover:underline">
                       {t("monet.linkEditTool")}
                     </Link>
                   </td>
@@ -321,7 +322,7 @@ export default function AdminMonetizationPage() {
                           disabled={patchMut.isPending}
                           onClick={() => patchMut.mutate({ id: r.order_id, body: { payment_status: st } })}
                           className={`px-2 py-0.5 rounded text-[10px] ${
-                            r.payment_status === st ? "bg-cyan-600/40 text-cyan-100" : "bg-white/10 text-gray-400 hover:bg-white/15"
+                            r.payment_status === st ? "bg-admin-btn/35 text-gray-200" : "bg-white/10 text-gray-400 hover:bg-white/15"
                           }`}
                         >
                           {label}
@@ -330,7 +331,7 @@ export default function AdminMonetizationPage() {
                     </div>
                     <input
                       type="text"
-                      className="w-full max-w-[12rem] rounded border border-purple-500/25 bg-black/30 px-2 py-1 text-[11px] text-gray-200"
+                      className="w-full max-w-[12rem] rounded border border-admin-border/90 bg-black/30 px-2 py-1 text-[11px] text-gray-200"
                       placeholder={t("monet.extendPlaceholder")}
                       value={extendUntil[r.order_id] ?? r.valid_until}
                       onChange={(e) =>
@@ -348,7 +349,7 @@ export default function AdminMonetizationPage() {
                           },
                         })
                       }
-                      className="mt-1 w-full rounded bg-purple-600/70 py-1 text-[11px] text-white hover:bg-purple-600 disabled:opacity-50"
+                      className="mt-1 w-full rounded bg-admin-btn/80 py-1 text-[11px] text-white hover:bg-admin-btn-hover disabled:opacity-50"
                     >
                       {t("monet.extendSubmit")}
                     </button>

@@ -57,7 +57,7 @@ export default function AdminToolJsonLdPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <Braces className="h-8 w-8 text-cyan-400 shrink-0 mt-1" aria-hidden /> {/* 与侧栏 Braces 一致 */}
+        <Braces className="h-8 w-8 text-admin-link shrink-0 mt-1" aria-hidden /> {/* 与侧栏 Braces 一致 */}
         <div>
           <h1 className="text-2xl font-semibold text-white">{L("工具详情 JSON-LD", "Tool detail JSON-LD")}</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-3xl">
@@ -76,7 +76,7 @@ export default function AdminToolJsonLdPage() {
       <label className="block text-xs text-gray-400">
         global_merge (JSON)
         <textarea
-          className="mt-1 w-full max-w-3xl min-h-[220px] rounded-lg border border-cyan-500/30 bg-[#0a011890] p-3 font-mono text-sm text-white"
+          className="mt-1 w-full max-w-3xl min-h-[220px] rounded-lg border border-admin-border/90 bg-admin-bg/90 p-3 font-mono text-sm text-white"
           value={mergeText}
           onChange={(e) => setMergeText(e.target.value)}
           spellCheck={false}
@@ -85,7 +85,7 @@ export default function AdminToolJsonLdPage() {
 
       <button
         type="button"
-        className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 disabled:opacity-50"
+        className="rounded-lg bg-admin-btn px-4 py-2 text-sm font-medium text-white hover:bg-admin-btn-hover disabled:opacity-50"
         disabled={save.isPending}
         onClick={() => void save.mutateAsync()}
       >

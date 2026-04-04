@@ -1,0 +1,15 @@
+# markdownlint-cli2 配置：与中文、宽表格、API 表等技术文档对齐，减少无实质收益的大量告警。
+# 用法：npx markdownlint-cli2 "docs/**/*.md" "!**/._*"
+config:
+  # 行宽：表格/代码块/标题单独放宽；正文允许较长行（技术文档常见）
+  MD013:
+    line_length: 999
+    tables: false
+    code_blocks: false
+    headings: false
+  # 表格竖线旁空格风格（compact vs aligned）；仓库内大量紧凑表，统一关闭
+  MD060: false
+  # 允许内联 HTML（如表格内 <br> 换行）
+  MD033: false
+  # 有序列表编号后空格由 --fix 已处理；保留规则
+  MD030: true

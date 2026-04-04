@@ -1,0 +1,15 @@
+{
+  // 仅将 backend 文件夹作为工作区根时使用（勿与仓库根下的 .vscode 混用路径）
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
+  "python.venvPath": "${workspaceFolder}",
+  "python.analysis.extraPaths": ["${workspaceFolder}"],
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.packageIndexDepths": [
+    { "name": "fastapi", "depth": 6 },
+    { "name": "starlette", "depth": 6 }
+  ],
+  "basedpyright.analysis.diagnosticMode": "workspace"
+}

@@ -52,3 +52,24 @@ def enforce_production_secrets() -> None:
             file=sys.stderr,
         )
         sys.exit(1)  # 拒绝带弱密钥上线
+
+
+def warn_production_cors_origins() -> None:
+    # 生产：ALLOWED_ORIGINS 未设或为 * 时 stderr WARN，不 exit（与 OPS-ENV / 09 清单一致）
+    if not is_production_environment():  # 非 production 不提示
+        return  # 开发/预发保持安静
+    raw = os.environ.get("ALLOWED_ORIGINS", "").strip()  # 逗号分隔 Origin 或 *
+    if not raw:  # 未设置：main._cors_allow 退化为本机/私网正则
+        print(  # 跨域部署常见遗漏，仅警告
+            "WARN: ENVIRONMENT=production 但未设置 ALLOWED_ORIGINS；"
+            "若浏览器前端与 API 不同源，请求可能被 CORS 拦截。"
+            "同源反代场景可忽略。见 backend/.env.example 与 docs/09-上线发布验收清单.md §4。",
+            file=sys.stderr,
+        )
+        return  # 已输出一条即可
+    if raw == "*":  # 显式允许任意 Origin
+        print(  # 与 allow_credentials=false 组合仍须业务确认
+            "WARN: ENVIRONMENT=production 且 ALLOWED_ORIGINS=*；"
+            "任意站点均可跨域调用（credentials 已关闭），请确认符合安全策略。",
+            file=sys.stderr,
+        )

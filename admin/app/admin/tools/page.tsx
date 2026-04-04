@@ -65,7 +65,7 @@ export default function AdminToolsPage() {
               title={t("fieldHelp.toolsList.tabHint")}
               onClick={() => setTab(tabKey)}
               className={`px-3 py-1.5 rounded-lg text-xs capitalize ${
-                tab === tabKey ? "bg-purple-500/35 text-white" : "bg-white/5 text-gray-400"
+                tab === tabKey ? "bg-white/10 text-white" : "bg-white/5 text-gray-400"
               }`}
             >
               {tabKey === "all"
@@ -81,9 +81,9 @@ export default function AdminToolsPage() {
         <FieldHint text={t("fieldHelp.toolsList.tabHint")} />
       </div>
 
-      <div className="rounded-xl border border-purple-500/20 overflow-x-auto">
+      <div className="rounded-xl border border-admin-border/90 overflow-x-auto">
         <table className="w-full text-sm min-w-[1000px]">
-          <thead className="bg-[#120822] text-gray-400 text-left">
+          <thead className="bg-admin-surface text-gray-400 text-left">
             <tr>
               <ThHelp title={t("tools.colId")} help={t("fieldHelp.toolsList.colId")} />
               <ThHelp title={t("tools.colTool")} help={t("fieldHelp.toolsList.colTool")} />
@@ -95,7 +95,7 @@ export default function AdminToolsPage() {
               <ThHelp title={t("tools.colActions")} help={t("fieldHelp.toolsList.colActions")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {isLoading && (
               <tr>
                 <td colSpan={8} className="p-4 text-gray-500">
@@ -125,7 +125,7 @@ export default function AdminToolsPage() {
                         href={r.website_url.startsWith("http") ? r.website_url : `https://${r.website_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-cyan-300 hover:underline text-xs"
+                        className="text-admin-accent hover:underline text-xs"
                       >
                         {r.website_url}
                       </a>
@@ -146,7 +146,7 @@ export default function AdminToolsPage() {
                   <td className="p-2 space-x-1 flex flex-wrap gap-1">
                     <Link
                       href={`/admin/tools/${r.id}/edit`}
-                      className="text-xs px-2 py-1 rounded bg-cyan-500/20 text-cyan-200 hover:bg-cyan-500/30"
+                      className="text-xs px-2 py-1 rounded bg-white/[0.07] text-gray-300 hover:bg-white/10"
                     >
                       {t("tools.edit")}
                     </Link>

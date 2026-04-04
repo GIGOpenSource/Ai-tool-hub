@@ -111,20 +111,20 @@ export default function AdminToolEditPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold text-white">{t("tools.editTitle")}</h1>
-        <Link href="/admin/tools" className="text-sm text-cyan-300 hover:underline">
+        <Link href="/admin/tools" className="text-sm text-admin-accent hover:underline">
           {t("tools.editBack")}
         </Link>
       </div>
       <p className="text-xs text-gray-500">
-        ID {detail.id} · slug <span className="text-cyan-200/90">{detail.slug}</span> · {detail.moderation_status}
+        ID {detail.id} · slug <span className="text-gray-300/90">{detail.slug}</span> · {detail.moderation_status}
       </p>
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-purple-500/20 bg-[#120822]/80 p-4">
+      <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-admin-border/90 bg-admin-surface/80 p-4">
         <label className="block space-y-1">
           <span className="text-xs text-gray-400">{t("tools.fieldName")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.name")} />
           <input
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -134,7 +134,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldTagline")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.tagline")} />
           <input
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={tagline}
             onChange={(e) => setTagline(e.target.value)}
           />
@@ -143,7 +143,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldDescription")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.description")} />
           <textarea
-            className="min-h-[72px] w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="min-h-[72px] w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
@@ -153,7 +153,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldLongDesc")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.longDesc")} />
           <textarea
-            className="min-h-[120px] w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="min-h-[120px] w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={longDescription}
             onChange={(e) => setLongDescription(e.target.value)}
           />
@@ -163,7 +163,7 @@ export default function AdminToolEditPage() {
           <FieldHint text={t("fieldHelp.toolsEdit.website")} />
           <input
             type="url"
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
           />
@@ -172,7 +172,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldPricing")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.pricing")} />
           <input
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={pricingType}
             onChange={(e) => setPricingType(e.target.value)}
           />
@@ -181,7 +181,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldIcon")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.icon")} />
           <input
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={iconEmoji}
             onChange={(e) => setIconEmoji(e.target.value)}
           />
@@ -190,7 +190,7 @@ export default function AdminToolEditPage() {
           <span className="text-xs text-gray-400">{t("tools.fieldCategory")}</span>
           <FieldHint text={t("fieldHelp.toolsEdit.category")} />
           <select
-            className="w-full rounded-lg border border-purple-500/25 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={categorySlug}
             onChange={(e) => setCategorySlug(e.target.value)}
           >
@@ -207,7 +207,7 @@ export default function AdminToolEditPage() {
         <button
           type="submit"
           disabled={saveMut.isPending}
-          className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {saveMut.isPending ? t("tools.editSaving") : t("tools.editSave")}
         </button>

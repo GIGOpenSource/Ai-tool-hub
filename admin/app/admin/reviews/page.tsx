@@ -50,9 +50,9 @@ export default function AdminReviewsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-white">{t("reviews.title")}</h1>
-      <div className="rounded-xl border border-purple-500/20 overflow-x-auto">
+      <div className="rounded-xl border border-admin-border/90 overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
-          <thead className="bg-[#120822] text-gray-400 text-left">
+          <thead className="bg-admin-surface text-gray-400 text-left">
             <tr>
               <ThHelp title={t("reviews.colId")} help={t("fieldHelp.reviews.colId")} />
               <ThHelp title={t("reviews.colTool")} help={t("fieldHelp.reviews.colTool")} />
@@ -64,7 +64,7 @@ export default function AdminReviewsPage() {
               <ThHelp title={t("reviews.colActions")} help={t("fieldHelp.reviews.colActions")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {isLoading && (
               <tr>
                 <td colSpan={8} className="p-4 text-gray-500">
@@ -83,7 +83,7 @@ export default function AdminReviewsPage() {
               (data?.data ?? []).map((r) => (
                 <tr key={r.id}>
                   <td className="p-2">{r.id}</td>
-                  <td className="p-2 text-cyan-100/90">{r.tool_name}</td>
+                  <td className="p-2 text-gray-200/90">{r.tool_name}</td>
                   <td className="p-2 text-gray-400">{r.reviewer_label}</td>
                   <td className="p-2">{r.rating}</td>
                   <td className="p-2 max-w-[200px] truncate text-gray-400">{r.content_preview}</td>
@@ -92,7 +92,7 @@ export default function AdminReviewsPage() {
                   <td className="p-2 space-x-1 flex flex-wrap gap-1">
                     <button
                       type="button"
-                      className="text-xs text-cyan-300"
+                      className="text-xs text-admin-accent"
                       onClick={() => setFullId(r.id === fullId ? null : r.id)}
                     >
                       {t("reviews.fullText")}
@@ -125,7 +125,7 @@ export default function AdminReviewsPage() {
         </table>
       </div>
       {fullId != null && (
-        <div className="rounded-lg border border-purple-500/25 bg-[#120822]/80 p-4 text-sm text-gray-300 whitespace-pre-wrap">
+        <div className="rounded-lg border border-admin-border/90 bg-admin-surface/80 p-4 text-sm text-gray-300 whitespace-pre-wrap">
           {(data?.data ?? []).find((x) => x.id === fullId)?.content_full}
         </div>
       )}

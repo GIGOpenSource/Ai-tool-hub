@@ -11,10 +11,18 @@
 
 # 本地数据库与虚拟环境（勿将生产 app.db 提交入库，见 04-P0安全与联调备忘 ENG-04）
 backend/data/*.db
+# 本地/定时脚本生成的 SQLite 与 pg_dump 产物（勿入库）
+backend/data/backups/
 backend/.venv/
+# 其他本地虚拟环境目录名（勿入库）
+backend/.venv_hb/
 # 本地校验用虚拟环境，勿入库
 backend/.venv_check/
 .venv/
+
+# Python 字节码与缓存目录（勿提交）
+__pycache__/
+*.py[cod]
 
 # 依赖与构建产物（子目录常有独立 .gitignore，此处补根级路径）
 node_modules/

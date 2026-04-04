@@ -11,9 +11,9 @@ export function AdminHeader() {
   const { t, locale, setLocale } = useI18n();
 
   return (
-    <header className="h-14 border-b border-purple-500/20 flex items-center justify-between px-6 bg-[#120822]/80">
+    <header className="h-14 border-b border-admin-border/80 flex items-center justify-between px-6 bg-admin-surface/85">
       <div className="flex items-center gap-2 text-sm text-gray-400">
-        <Shield className="w-4 h-4 text-cyan-400" />
+        <Shield className="w-4 h-4 text-admin-accent" />
         <span>{t("header.console")}</span>
       </div>
       <div className="flex items-center gap-4">

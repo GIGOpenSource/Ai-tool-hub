@@ -18,6 +18,8 @@
 
 # misc
 .DS_Store
+# macOS / 外置卷 AppleDouble 元数据副本（勿提交）
+._*
 *.pem
 
 # debug

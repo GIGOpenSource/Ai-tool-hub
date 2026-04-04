@@ -66,16 +66,16 @@ export function DateRangePicker({
         aria-haspopup="dialog"
         aria-label={label}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-lg border border-purple-500/30 bg-black/30 px-3 py-1.5 text-sm text-gray-200 hover:border-cyan-500/40 hover:bg-purple-900/20"
+        className="inline-flex items-center gap-2 rounded-lg border border-admin-border bg-black/30 px-3 py-1.5 text-sm text-gray-200 hover:border-admin-border hover:bg-white/[0.04]"
       >
-        <CalendarRange className="w-4 h-4 text-cyan-300 shrink-0" />
+        <CalendarRange className="w-4 h-4 text-admin-accent shrink-0" />
         <span className="tabular-nums">{display}</span>
       </button>
       {open ? (
         <div
           role="dialog"
           aria-label={label}
-          className="absolute left-0 top-full z-50 mt-2 rounded-xl border border-purple-500/30 bg-[#120822] p-3 shadow-xl rdp-admin-scope"
+          className="absolute left-0 top-full z-50 mt-2 rounded-xl border border-admin-border bg-admin-surface p-3 shadow-xl rdp-admin-scope"
         >
           <div className="mb-2 text-xs font-medium text-gray-400">{label}</div>
           <DayPicker

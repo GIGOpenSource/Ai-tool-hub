@@ -89,7 +89,7 @@ export default function AdminSiteBlocksPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <Code2 className="w-7 h-7 text-cyan-400 shrink-0 mt-0.5" />
+        <Code2 className="w-7 h-7 text-admin-link shrink-0 mt-0.5" />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("siteJson.title")}</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-3xl">{t("siteJson.subtitle")}</p>
@@ -100,7 +100,7 @@ export default function AdminSiteBlocksPage() {
         <label className="text-xs text-gray-400 flex items-center gap-2">
           {t("siteJson.selectKey")}
           <select
-            className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-2 py-1.5 text-sm text-white"
+            className="rounded-lg border border-admin-border bg-admin-bg/90 px-2 py-1.5 text-sm text-white"
             value={key}
             onChange={(e) => setKey(e.target.value)}
           >
@@ -113,18 +113,18 @@ export default function AdminSiteBlocksPage() {
         </label>
       </div>
 
-      <div className="rounded-xl border border-cyan-500/25 bg-cyan-950/20 p-4 text-xs text-gray-300 leading-relaxed max-w-4xl"> {/* 当前键的中文 API 对照 */}
-        <p className="text-cyan-200/90 font-medium mb-2">{t("siteJson.referenceTitle")}</p> {/* 小标题 */}
+      <div className="rounded-xl border border-admin-border/90 bg-zinc-900/35 p-4 text-xs text-gray-300 leading-relaxed max-w-4xl"> {/* 当前键的中文 API 对照 */}
+        <p className="text-gray-300/90 font-medium mb-2">{t("siteJson.referenceTitle")}</p> {/* 小标题 */}
         <p>{t(`siteJson.blockHelp.${key}`)}</p> {/* 随下拉切换说明 */}
       </div>
 
       {isLoading && <p className="text-gray-500 text-sm">{t("pageSeo.loading")}</p>}
       {prettyError && <p className="text-rose-400 text-sm">{prettyError}</p>}
 
-      <div className="flex gap-2 border-b border-purple-500/20 pb-2">
+      <div className="flex gap-2 border-b border-admin-border/90 pb-2">
         <button
           type="button"
-          className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "visual" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
+          className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "visual" ? "bg-admin-btn text-white" : "text-gray-400 hover:text-white"}`}
           onClick={() => {
             if (editMode === "json") {
               try {
@@ -147,7 +147,7 @@ export default function AdminSiteBlocksPage() {
         </button>
         <button
           type="button"
-          className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "json" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
+          className={`rounded-lg px-3 py-1.5 text-sm ${editMode === "json" ? "bg-admin-btn text-white" : "text-gray-400 hover:text-white"}`}
           onClick={() => {
             setText(JSON.stringify(draft, null, 2)); // 从草稿生成文本
             setEditMode("json"); // 切到源码
@@ -178,7 +178,7 @@ export default function AdminSiteBlocksPage() {
           />
         ) : (
           <textarea
-            className="w-full min-h-[420px] font-mono text-sm rounded-xl border border-purple-500/25 bg-[#0a011890] p-4 text-gray-100"
+            className="w-full min-h-[420px] font-mono text-sm rounded-xl border border-admin-border/90 bg-admin-bg/90 p-4 text-gray-100"
             spellCheck={false}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -189,7 +189,7 @@ export default function AdminSiteBlocksPage() {
       <div className="flex gap-2">
         <button
           type="button"
-          className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           disabled={save.isPending}
           onClick={() => {
             if (editMode === "json") {

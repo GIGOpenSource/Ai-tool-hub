@@ -114,7 +114,7 @@ export default function AdminSiteDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <LayoutTemplate className="w-7 h-7 text-cyan-400 shrink-0 mt-0.5" />
+        <LayoutTemplate className="w-7 h-7 text-admin-link shrink-0 mt-0.5" />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("sidebar.siteDashboardForm")}</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-3xl">{hint}</p>
@@ -127,33 +127,33 @@ export default function AdminSiteDashboardPage() {
       <div className="space-y-4 max-w-3xl">
         <p className="text-xs text-gray-400">stat_badges（四项）</p>
         <div className="grid sm:grid-cols-2 gap-2">
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={b0} onChange={(e) => setB0(e.target.value)} placeholder="badge 1" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={b1} onChange={(e) => setB1(e.target.value)} placeholder="badge 2" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={b2} onChange={(e) => setB2(e.target.value)} placeholder="badge 3" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={b3} onChange={(e) => setB3(e.target.value)} placeholder="badge 4" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={b0} onChange={(e) => setB0(e.target.value)} placeholder="badge 1" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={b1} onChange={(e) => setB1(e.target.value)} placeholder="badge 2" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={b2} onChange={(e) => setB2(e.target.value)} placeholder="badge 3" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={b3} onChange={(e) => setB3(e.target.value)} placeholder="badge 4" />
         </div>
         <p className="text-xs text-gray-400">summary_numbers</p>
         <div className="grid sm:grid-cols-2 gap-2">
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={views} onChange={(e) => setViews(e.target.value)} placeholder="views" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={clicks} onChange={(e) => setClicks(e.target.value)} placeholder="clicks" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={rating} onChange={(e) => setRating(e.target.value)} placeholder="rating" />
-          <input className="rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white" value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="ctr" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={views} onChange={(e) => setViews(e.target.value)} placeholder="views" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={clicks} onChange={(e) => setClicks(e.target.value)} placeholder="clicks" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={rating} onChange={(e) => setRating(e.target.value)} placeholder="rating" />
+          <input className="rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white" value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="ctr" />
         </div>
         <label className="block text-xs text-gray-400">
           ui（JSON 对象）
-          <textarea className="mt-1 w-full min-h-[200px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={uiText} onChange={(e) => setUiText(e.target.value)} />
+          <textarea className="mt-1 w-full min-h-[200px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={uiText} onChange={(e) => setUiText(e.target.value)} />
         </label>
         <label className="block text-xs text-gray-400">
           page_views_data（JSON 数组）
-          <textarea className="mt-1 w-full min-h-[140px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={pvText} onChange={(e) => setPvText(e.target.value)} />
+          <textarea className="mt-1 w-full min-h-[140px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={pvText} onChange={(e) => setPvText(e.target.value)} />
         </label>
         <label className="block text-xs text-gray-400">
           ratings_data（JSON 数组）
-          <textarea className="mt-1 w-full min-h-[120px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={ratingsText} onChange={(e) => setRatingsText(e.target.value)} />
+          <textarea className="mt-1 w-full min-h-[120px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={ratingsText} onChange={(e) => setRatingsText(e.target.value)} />
         </label>
         <label className="block text-xs text-gray-400">
           category_performance（JSON 数组）
-          <textarea className="mt-1 w-full min-h-[120px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={catPerfText} onChange={(e) => setCatPerfText(e.target.value)} />
+          <textarea className="mt-1 w-full min-h-[120px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-gray-100 font-mono" spellCheck={false} value={catPerfText} onChange={(e) => setCatPerfText(e.target.value)} />
         </label>
       </div>
 
@@ -161,7 +161,7 @@ export default function AdminSiteDashboardPage() {
         type="button"
         disabled={save.isPending}
         onClick={() => save.mutate()}
-        className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {save.isPending ? t("siteJson.saving") : t("siteJson.save")}
       </button>

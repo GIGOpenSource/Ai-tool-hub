@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={exportSummaryCsv}
-            className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20"
+            className="inline-flex items-center gap-2 rounded-lg border border-admin-border/90 bg-white/[0.04] px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.07]"
           >
             <Download className="w-4 h-4" />
             {t("dashboard.exportCsv")}
@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-purple-500/20 bg-[#120822]/50 p-4">
+      <div className="rounded-xl border border-admin-border/90 bg-admin-surface/50 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div>
             <h2 className="text-lg font-medium text-white">{t("dashboard.trafficTrend")}</h2>
@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
                 onClick={() => quickTrend(d)}
                 className={`px-3 py-1 rounded-md text-xs ${
                   presetActive(d)
-                    ? "bg-purple-500/40 text-white"
+                    ? "bg-white/[0.12] text-white"
                     : "bg-white/5 text-gray-400 hover:bg-white/10"
                 }`}
               >

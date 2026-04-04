@@ -53,7 +53,7 @@ export default function AdminHomeSeoPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <Search className="w-7 h-7 text-cyan-400 shrink-0 mt-0.5" />
+        <Search className="w-7 h-7 text-admin-link shrink-0 mt-0.5" />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("sidebar.homeSeoForm")}</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-3xl">{hint}</p>
@@ -67,7 +67,7 @@ export default function AdminHomeSeoPage() {
         <label className="block text-xs text-gray-400">
           brand_icon_emoji（空=前台默认图标）
           <input
-            className="mt-1 w-full rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="mt-1 w-full rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={brandIconEmoji}
             onChange={(e) => setBrandIconEmoji(e.target.value)}
             placeholder="✨"
@@ -76,7 +76,7 @@ export default function AdminHomeSeoPage() {
         <label className="block text-xs text-gray-400">
           brand_title
           <input
-            className="mt-1 w-full rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white"
+            className="mt-1 w-full rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white"
             value={brandTitle}
             onChange={(e) => setBrandTitle(e.target.value)}
           />
@@ -84,7 +84,7 @@ export default function AdminHomeSeoPage() {
         <label className="block text-xs text-gray-400">
           keywords
           <textarea
-            className="mt-1 w-full min-h-[120px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white font-mono"
+            className="mt-1 w-full min-h-[120px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white font-mono"
             spellCheck={false}
             value={keywords}
             onChange={(e) => setKeywords(e.target.value)}
@@ -96,7 +96,7 @@ export default function AdminHomeSeoPage() {
         type="button"
         disabled={save.isPending}
         onClick={() => save.mutate()}
-        className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {save.isPending ? "…" : locale === "zh" ? "保存" : "Save"}
       </button>

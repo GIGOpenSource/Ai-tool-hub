@@ -150,6 +150,19 @@ CREATE INDEX IF NOT EXISTS idx_pvl_sess_time ON page_view_log(session_id, create
 
 CREATE INDEX IF NOT EXISTS idx_pvl_user_time ON page_view_log(user_id, created_at);
 
+CREATE TABLE IF NOT EXISTS outbound_click_log (
+  id SERIAL PRIMARY KEY,
+  tool_slug TEXT NOT NULL,
+  page_path TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  user_id INTEGER REFERENCES app_user(id),
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ocl_slug_time ON outbound_click_log(tool_slug, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_ocl_time ON outbound_click_log(created_at);
+
 CREATE TABLE IF NOT EXISTS page_analytics_daily (
   id SERIAL PRIMARY KEY,
   date TEXT NOT NULL,
@@ -173,3 +186,104 @@ CREATE TABLE IF NOT EXISTS monetization_order (
   extra_uid INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
 );
+
+CREATE TABLE IF NOT EXISTS ai_insight_prompt_config (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  system_prompt TEXT NOT NULL,
+  user_prompt_template TEXT NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE TABLE IF NOT EXISTS ai_insight_llm_provider (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  base_url TEXT NOT NULL DEFAULT 'https://api.openai.com/v1',
+  model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+  api_key TEXT,
+  api_key_env_name TEXT,
+  timeout_sec INTEGER NOT NULL DEFAULT 120,
+  temperature DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+  extra_headers_json TEXT NOT NULL DEFAULT '{}',
+  is_default INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE TABLE IF NOT EXISTS ai_insight_run (
+  id SERIAL PRIMARY KEY,
+  admin_user_id INTEGER NOT NULL REFERENCES app_user(id),
+  prompt_config_id INTEGER REFERENCES ai_insight_prompt_config(id) ON DELETE SET NULL,
+  llm_provider_id INTEGER REFERENCES ai_insight_llm_provider(id) ON DELETE SET NULL,
+  prompt_snapshot_json TEXT NOT NULL,
+  provider_snapshot_json TEXT NOT NULL,
+  input_payload_summary TEXT NOT NULL,
+  status TEXT NOT NULL,
+  output_text TEXT NOT NULL DEFAULT '',
+  error_message TEXT NOT NULL DEFAULT '',
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  tokens_in INTEGER,
+  tokens_out INTEGER,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_insight_run_created ON ai_insight_run(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_insight_run_admin ON ai_insight_run(admin_user_id);
+
+CREATE TABLE IF NOT EXISTS crawler_source (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  feed_url TEXT NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'json_feed',
+  config_json TEXT NOT NULL DEFAULT '{}',
+  respect_robots INTEGER NOT NULL DEFAULT 1,
+  user_agent TEXT NOT NULL DEFAULT '',
+  enabled INTEGER NOT NULL DEFAULT 1,
+  auto_crawl_enabled INTEGER NOT NULL DEFAULT 0,
+  crawl_interval_minutes INTEGER NOT NULL DEFAULT 1440,
+  daily_max_items INTEGER NOT NULL DEFAULT 1000,
+  scheduled_max_items_per_run INTEGER NOT NULL DEFAULT 100,
+  auto_dry_run INTEGER NOT NULL DEFAULT 1,
+  auto_write_strategy TEXT NOT NULL DEFAULT 'insert_only',
+  last_auto_run_at TEXT,
+  daily_quota_date TEXT,
+  daily_quota_used INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE TABLE IF NOT EXISTS crawler_job (
+  id SERIAL PRIMARY KEY,
+  source_id INTEGER NOT NULL REFERENCES crawler_source(id) ON DELETE CASCADE,
+  admin_user_id INTEGER NOT NULL REFERENCES app_user(id),
+  dry_run INTEGER NOT NULL DEFAULT 1,
+  write_strategy TEXT NOT NULL DEFAULT 'insert_only',
+  max_items INTEGER NOT NULL DEFAULT 100,
+  status TEXT NOT NULL DEFAULT 'queued',
+  trigger_type TEXT NOT NULL DEFAULT 'manual',
+  items_processed INTEGER NOT NULL DEFAULT 0,
+  items_committed_insert INTEGER NOT NULL DEFAULT 0,
+  items_committed_update INTEGER NOT NULL DEFAULT 0,
+  log_text TEXT NOT NULL DEFAULT '',
+  summary_json TEXT NOT NULL DEFAULT '{}',
+  error_message TEXT NOT NULL DEFAULT '',
+  started_at TEXT,
+  finished_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+);
+
+CREATE TABLE IF NOT EXISTS crawler_job_preview (
+  id SERIAL PRIMARY KEY,
+  job_id INTEGER NOT NULL REFERENCES crawler_job(id) ON DELETE CASCADE,
+  ordinal INTEGER NOT NULL,
+  action TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  UNIQUE(job_id, ordinal)
+);
+
+CREATE INDEX IF NOT EXISTS idx_crawler_job_source ON crawler_job(source_id);
+CREATE INDEX IF NOT EXISTS idx_crawler_job_created ON crawler_job(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_crawler_preview_job ON crawler_job_preview(job_id);

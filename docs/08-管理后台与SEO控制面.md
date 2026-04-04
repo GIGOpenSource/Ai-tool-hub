@@ -10,9 +10,11 @@
 |------|----------------|------------------|
 | **页面级 SEO（TDK、canonical、og、noindex）** | 有（**Page SEO**） | **是**，经 `site_json.page_seo` → 前台 `useResolvedPageSeo` |
 | **工具目录与详情** | 有（**Tools** 列表/审核/编辑） | **是**，读写 `tool` 等表 |
+| **JSON 订阅导入（内容爬虫 MVP）** | 有（**`/admin/crawler`**，**数据采集**） | **是（经审核）**：拉取 JSON 写入 **`tool` 默认 `pending`** + `tool_feature` / `tool_pricing_plan` / `tool_screenshot`；见 [13-需求-内容爬虫与后台操作.md](./13-需求-内容爬虫与后台操作.md)、[06-API接口参考.md](./06-API接口参考.md) |
 | **用户评论 UGC** | 有（**Reviews**） | **是**，影响详情页已发布评论 |
 | **用户与角色** | 有（**Users**） | **间接**，主控账号权限与封禁，不直接改前台文案 |
 | **统计与大盘** | 有（**Dashboard / Analytics**） | **否**，只读分析，不改前台内容 |
+| **AI SEO / 流量解读** | **有**（**`/admin/ai-seo-insights`**，**CP-AI-SEO**） | **否**，仅生成**只读文本建议**与历史记录，**不自动写** `site_json` / 工具表；见 [12-需求-AI-SEO与流量分析助手.md](./12-需求-AI-SEO与流量分析助手.md) |
 | **商业化订单** | 有（**Monetization**） | **已登录**：个人中心列表 **`GET /api/me/orders`** + 详情页 **`/orders/:id`**（**`GET /api/me/orders/{id}`**）；**匿名**无订单区；工具详情/对比可显 **`promotion_active`**（弱曝光） |
 | **系统设置（菜单等）** | 有（**Settings**） | **是（前台主导航）**：`frontend_menu_items` 经 **GET /api/site/frontend_nav** 供 `Navigation.tsx`；失败或空数组则回退硬编码 |
 | **`site_json` 大块内容**（guide / more / sitemap 文案块等） | **有（站点 JSON）+ 若干专用页** | **是**：**站点 JSON** `GET/PUT /api/admin/site-json/{key}`（白名单）；**`page_seo`、`admin_settings` 除外**；**`home_seo`** 以 **「首页 SEO」分字段表单**为主（`/admin/home-seo`），整包 JSON 仅作进阶 |
@@ -97,6 +99,7 @@
 | **JSON-LD** | **`seo_tool_json_ld.global_merge`** 可配；专页 **`/admin/tool-json-ld`**（亦在站点 JSON） | 按工具 slug 逐条覆盖若需另立 |
 | **i18n 工程化** | **Translations** 已可维护表 | 翻译平台、批量导入导出等另立 |
 | **订单展示范围** | 已登录：列表 + **`/orders/:orderId`** 详情；**匿名无订单区** | 强曝光首页插卡等见 [**10-需求-商业化与订单.md**](./10-需求-商业化与订单.md) 后续迭代 |
+| **AI SEO / 流量分析助手** | **有**（**`/admin/ai-seo-insights`**） | 一键分析、提示词/模型配置、历史与详情；接口 [**06**](./06-API接口参考.md) **admin_ai_insights** |
 
 ---
 

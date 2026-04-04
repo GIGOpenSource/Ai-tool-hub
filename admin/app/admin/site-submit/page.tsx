@@ -78,7 +78,7 @@ export default function AdminSiteSubmitPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <ClipboardList className="w-7 h-7 text-cyan-400 shrink-0 mt-0.5" />
+        <ClipboardList className="w-7 h-7 text-admin-link shrink-0 mt-0.5" />
         <div>
           <h1 className="text-2xl font-semibold text-white">{t("sidebar.siteSubmitForm")}</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-3xl">{hint}</p>
@@ -92,7 +92,7 @@ export default function AdminSiteSubmitPage() {
         <label className="block text-xs text-gray-400">
           category_slugs（每行一个 slug，顺序即前台下拉顺序）
           <textarea
-            className="mt-1 w-full min-h-[120px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white font-mono"
+            className="mt-1 w-full min-h-[120px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white font-mono"
             spellCheck={false}
             value={categoryLines}
             onChange={(e) => setCategoryLines(e.target.value)}
@@ -101,7 +101,7 @@ export default function AdminSiteSubmitPage() {
         <label className="block text-xs text-gray-400">
           pricing_options（每行一项）
           <textarea
-            className="mt-1 w-full min-h-[80px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-white font-mono"
+            className="mt-1 w-full min-h-[80px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-white font-mono"
             spellCheck={false}
             value={pricingLines}
             onChange={(e) => setPricingLines(e.target.value)}
@@ -110,7 +110,7 @@ export default function AdminSiteSubmitPage() {
         <label className="block text-xs text-gray-400">
           ui（JSON 对象：page_title、guidelines 等）
           <textarea
-            className="mt-1 w-full min-h-[280px] rounded-lg border border-purple-500/30 bg-[#0a011890] px-3 py-2 text-sm text-gray-100 font-mono"
+            className="mt-1 w-full min-h-[280px] rounded-lg border border-admin-border bg-admin-bg/90 px-3 py-2 text-sm text-gray-100 font-mono"
             spellCheck={false}
             value={uiText}
             onChange={(e) => setUiText(e.target.value)}
@@ -122,7 +122,7 @@ export default function AdminSiteSubmitPage() {
         type="button"
         disabled={save.isPending}
         onClick={() => save.mutate()}
-        className="rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        className="rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {save.isPending ? t("siteJson.saving") : t("siteJson.save")}
       </button>

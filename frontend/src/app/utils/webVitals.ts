@@ -9,6 +9,11 @@ interface Metric {
   id: string;
 }
 
+// Chrome 等提供的非标准 performance.memory（标准 Performance 类型未声明）
+interface PerformanceWithOptionalMemory extends Performance {
+  memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number };
+}
+
 // Thresholds for Core Web Vitals (in milliseconds)
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },      // Largest Contentful Paint
@@ -223,9 +228,9 @@ export function initWebVitals() {
   observeFID();
   observeCLS();
 
-  // Log initial performance info
-  if (window.performance && window.performance.memory) {
-    const memory = (window.performance as any).memory;
+  const perf = window.performance as PerformanceWithOptionalMemory; // 收窄以便读取可选 memory
+  if (perf.memory) {
+    const memory = perf.memory; // 已判空，供模板字符串使用
     console.log(
       `[Performance] Memory: ${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB / ${(
         memory.jsHeapSizeLimit / 1048576
@@ -239,8 +244,8 @@ export function sendToAnalytics(metric: Metric) {
   // Implement your analytics service here
   // Example: Google Analytics, Mixpanel, etc.
   
-  // For now, just log to console in production
-  if (process.env.NODE_ENV === "production") {
-    console.log("Analytics:", metric);
+  // Vite 注入 import.meta.env.PROD，避免依赖 Node 的 process（浏览器 tsc 无 process 类型）
+  if (import.meta.env.PROD) {
+    console.log("Analytics:", metric); // 生产构建时落控制台占位，可替换为实际上报
   }
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os  # 读 DATABASE_URL
 import sqlite3  # 判断原生 SQLite 连接
+from typing import Any, TypeGuard  # psycopg 连接无完整 stubs 时用 Any；TypeGuard 供 Pyright 收窄分支
 
 # 与种子、后台路由中完全一致的 SQLite 片段 -> PostgreSQL 等价写法（先长后短，避免误替换）
 _SQLITE_TO_PG_LITERALS: tuple[tuple[str, str], ...] = (
@@ -85,8 +86,8 @@ def split_pg_schema_statements(text: str) -> list[str]:
 class PgConnectionAdapter:
     """包装 psycopg 连接：execute/executemany 走 translate_sql，返回的 Cursor 兼容 fetch/迭代。"""
 
-    def __init__(self, conn: object) -> None:
-        self._conn = conn  # 底层 psycopg 同步连接（惰性导入期避免注解依赖）
+    def __init__(self, conn: Any) -> None:  # Any：避免 object 无 cursor/commit 的静态误报（运行时由 psycopg 提供）
+        self._conn = conn  # 底层 psycopg 同步连接（惰性导入期避免硬依赖类型包）
 
     def execute(self, sql: str, params: tuple[object, ...] | list[object] | None = None):  # -> psycopg.Cursor
         from psycopg.rows import Row  # 仅 PG 环境加载驱动
@@ -107,10 +108,16 @@ class PgConnectionAdapter:
     def commit(self) -> None:  # 与 sqlite 连接一致，供路由显式提交
         self._conn.commit()  # 提交事务
 
+    def rollback(self) -> None:  # 失败时撤销未提交变更（与 sqlite3.Connection 对齐）
+        self._conn.rollback()  # 回滚事务
 
-def is_pg_adapter(conn: object) -> bool:
+
+MigrationConnection = sqlite3.Connection | PgConnectionAdapter  # 迁移/种子侧注解：二者均有 execute/commit，避免写成 | object 触发 Pyright
+
+
+def is_pg_adapter(conn: object) -> TypeGuard[PgConnectionAdapter]:
     """判断是否为 PgConnectionAdapter（迁移与列自省分支用）。"""
-    return isinstance(conn, PgConnectionAdapter)  # 类型钉死
+    return isinstance(conn, PgConnectionAdapter)  # True 时 Pyright 将 conn 收窄为适配器
 
 
 def table_column_names(conn: object, table: str) -> set[str]:

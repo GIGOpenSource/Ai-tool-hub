@@ -4,7 +4,14 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from app.db_util import is_pg_adapter, table_column_names  # 列自省与 PG 分支
+from app.ai_insight_prompt_defaults import (  # AI SEO 预设提示词（含每日报告 Checklist）
+    DEFAULT_AI_INSIGHT_CONFIG_NAME,  # 默认配置显示名
+    DEFAULT_AI_INSIGHT_SYSTEM_PROMPT,  # 系统消息全文
+    DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE,  # 用户模板全文
+    LEGACY_AI_INSIGHT_SYSTEM_PROMPT,  # 旧版系统消息（升级匹配用）
+    LEGACY_AI_INSIGHT_USER_PROMPT_TEMPLATE,  # 旧版用户模板（升级匹配用）
+)
+from app.db_util import MigrationConnection, is_pg_adapter, table_column_names  # 连接注解与列自省、PG 分支
 from app.paths import SEED_DIR  # 种子 JSON 路径（dashboard 合并模板）
 
 # 老库 admin_settings 无新菜单项时追加（按 path 去重；order 排在默认项之后）
@@ -59,10 +66,50 @@ _ADMIN_MENU_EXTRAS: list[dict[str, object]] = [
         "visible": True,
         "order": 8,
     },
+    {  # site_json.submit 分字段
+        "id": "adm-site-submit",
+        "key": "sidebar.siteSubmitForm",
+        "label": "Submit page blocks",
+        "path": "/admin/site-submit",
+        "icon": "ClipboardList",
+        "permission": "",
+        "visible": True,
+        "order": 9,
+    },
+    {  # site_json.dashboard 分字段
+        "id": "adm-site-dash",
+        "key": "sidebar.siteDashboardForm",
+        "label": "Dashboard blocks",
+        "path": "/admin/site-dashboard",
+        "icon": "LayoutTemplate",
+        "permission": "",
+        "visible": True,
+        "order": 10,
+    },
+    {  # PROD-AI-SEO：大模型解读 SEO/流量快照
+        "id": "adm-ai-seo",
+        "key": "sidebar.aiSeoInsights",
+        "label": "AI SEO insights",
+        "path": "/admin/ai-seo-insights",
+        "icon": "Sparkles",
+        "permission": "",
+        "visible": True,
+        "order": 12,
+    },
+    {  # PROD-CRAWLER：JSON 订阅拉取工具目录，Dry-run 后入库 pending
+        "id": "adm-crawler",
+        "key": "sidebar.crawlerData",
+        "label": "Data import",
+        "path": "/admin/crawler",
+        "icon": "CloudDownload",
+        "permission": "",
+        "visible": True,
+        "order": 12,
+    },
 ]
 
 
-def _ensure_admin_menu_extras(conn: sqlite3.Connection | object) -> None:  # 合并侧栏项，不删运营已有项
+def _ensure_admin_menu_extras(conn: MigrationConnection) -> None:  # 合并侧栏项，不删运营已有项
     row = conn.execute(  # 读整块 admin_settings
         "SELECT payload_json FROM site_json WHERE content_key = 'admin_settings' LIMIT 1",
     ).fetchone()  # 无行则跳过
@@ -91,7 +138,7 @@ def _ensure_admin_menu_extras(conn: sqlite3.Connection | object) -> None:  # 合
     )
 
 
-def _cols(conn: sqlite3.Connection | object, table: str) -> set[str]:  # 与 table_column_names 等价别名
+def _cols(conn: MigrationConnection, table: str) -> set[str]:  # 与 table_column_names 等价别名
     return table_column_names(conn, table)  # PRAGMA 或 information_schema
 
 
@@ -103,7 +150,7 @@ def _merge_missing_dashboard(dst: dict, src: dict) -> None:  # 就地补键；�
             _merge_missing_dashboard(dst[k], v)
 
 
-def _ensure_dashboard_merge(conn: sqlite3.Connection | object) -> None:  # 老库缺 my_tools/ui 键时从种子补全
+def _ensure_dashboard_merge(conn: MigrationConnection) -> None:  # 老库缺 my_tools/ui 键时从种子补全
     path = SEED_DIR / "site_content.json"
     if not path.is_file():
         return
@@ -136,7 +183,153 @@ def _ensure_dashboard_merge(conn: sqlite3.Connection | object) -> None:  # 老�
     )
 
 
-def apply_migrations(conn: sqlite3.Connection | object) -> None:
+def _table_exists(conn: MigrationConnection, name: str) -> bool:  # 判断表是否在库中
+    if is_pg_adapter(conn):  # PostgreSQL
+        row = conn.execute(  # public 下按名查
+            "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?",
+            (name,),
+        ).fetchone()  # 一行或空
+        return row is not None  # 存在为 True
+    row = conn.execute(  # SQLite：sqlite_master
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        (name,),
+    ).fetchone()  # 一行或空
+    return row is not None  # 存在为 True
+
+
+def _ensure_ai_insight_llm_provider_table(conn: MigrationConnection) -> None:  # 多模型连接表（无则建）
+    if _table_exists(conn, "ai_insight_llm_provider"):  # 已有（含新库 schema）
+        return  # 跳过
+    if is_pg_adapter(conn):  # PostgreSQL DDL
+        conn.execute(
+            """CREATE TABLE ai_insight_llm_provider (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                base_url TEXT NOT NULL DEFAULT 'https://api.openai.com/v1',
+                model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+                api_key TEXT,
+                api_key_env_name TEXT,
+                timeout_sec INTEGER NOT NULL DEFAULT 120,
+                temperature DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+                extra_headers_json TEXT NOT NULL DEFAULT '{}',
+                is_default INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT),
+                updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+            )"""
+        )
+        return  # 结束 PG
+    conn.execute(  # SQLite DDL
+        """CREATE TABLE ai_insight_llm_provider (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            base_url TEXT NOT NULL DEFAULT 'https://api.openai.com/v1',
+            model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+            api_key TEXT,
+            api_key_env_name TEXT,
+            timeout_sec INTEGER NOT NULL DEFAULT 120,
+            temperature REAL NOT NULL DEFAULT 0.3,
+            extra_headers_json TEXT NOT NULL DEFAULT '{}',
+            is_default INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )"""
+    )
+
+
+def _migrate_legacy_ai_insight_provider_settings(conn: MigrationConnection) -> None:  # 单表 → 多行表
+    if not _table_exists(conn, "ai_insight_provider_settings"):  # 无旧表
+        return  # 无需迁移
+    cnt_row = conn.execute("SELECT COUNT(*) AS c FROM ai_insight_llm_provider").fetchone()  # 新表行数
+    n_new = int(cnt_row["c"] or 0) if cnt_row else 0  # int
+    if n_new == 0:  # 新表空则拷贝
+        old = conn.execute("SELECT * FROM ai_insight_provider_settings WHERE id = 1").fetchone()  # 旧单行
+        if old:  # 有数据
+            conn.execute(
+                """INSERT INTO ai_insight_llm_provider
+                (name, base_url, model, api_key, api_key_env_name, timeout_sec, temperature, extra_headers_json, is_default)
+                VALUES (?,?,?,?,?,?,?,?,1)""",
+                (
+                    "Default (migrated)",  # 显示名
+                    str(old["base_url"]),  # URL
+                    str(old["model"]),  # 模型
+                    old["api_key"],  # 密钥可空
+                    old["api_key_env_name"],  # env 名可空
+                    int(old["timeout_sec"] or 120),  # 超时
+                    float(old["temperature"] if old["temperature"] is not None else 0.3),  # 温度
+                    str(old["extra_headers_json"] or "{}"),  # 扩展头
+                ),
+            )
+    conn.execute("DROP TABLE ai_insight_provider_settings")  # 丢弃旧表名
+
+
+def _ensure_ai_insight_run_llm_provider_id_column(conn: MigrationConnection) -> None:  # run 表补外键列
+    cols = table_column_names(conn, "ai_insight_run")  # 当前列
+    if "llm_provider_id" in cols:  # 已有
+        return  # 跳过
+    if is_pg_adapter(conn):  # PG 带引用
+        conn.execute(
+            "ALTER TABLE ai_insight_run ADD COLUMN llm_provider_id INTEGER REFERENCES ai_insight_llm_provider(id) ON DELETE SET NULL"
+        )
+        return  # 结束
+    conn.execute("ALTER TABLE ai_insight_run ADD COLUMN llm_provider_id INTEGER")  # SQLite 仅列
+
+
+def _upgrade_legacy_ai_insight_prompt_seed(conn: MigrationConnection) -> None:  # 仍为旧版种子全文时升级到 Checklist 版
+    row = conn.execute(  # 优先改当前默认配置
+        "SELECT id, system_prompt, user_prompt_template FROM ai_insight_prompt_config WHERE is_default = 1 ORDER BY id LIMIT 1"
+    ).fetchone()  # 单行或无
+    if row is None:  # 无默认行
+        row = conn.execute(  # 退化为最小 id（单配置老库）
+            "SELECT id, system_prompt, user_prompt_template FROM ai_insight_prompt_config ORDER BY id LIMIT 1"
+        ).fetchone()  # 单行或无
+    if row is None:  # 无配置表数据
+        return  # 跳过
+    rid = int(row["id"])  # 配置主键
+    sys_p = str(row["system_prompt"] or "")  # 当前系统消息
+    usr_p = str(row["user_prompt_template"] or "")  # 当前用户模板
+    if sys_p != LEGACY_AI_INSIGHT_SYSTEM_PROMPT or usr_p != LEGACY_AI_INSIGHT_USER_PROMPT_TEMPLATE:  # 非旧版全文
+        return  # 不覆盖运营已改写的配置
+    conn.execute(  # 升级到含三大 Checklist 的每日报告预设
+        "UPDATE ai_insight_prompt_config SET name = ?, system_prompt = ?, user_prompt_template = ? WHERE id = ?",
+        (
+            DEFAULT_AI_INSIGHT_CONFIG_NAME,  # 新显示名
+            DEFAULT_AI_INSIGHT_SYSTEM_PROMPT,  # 新系统消息
+            DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE,  # 新用户模板
+            rid,  # WHERE
+        ),
+    )  # 结束 UPDATE
+
+
+def _ensure_ai_insight_seed(conn: MigrationConnection) -> None:  # 空表时写入默认提示词与 provider 占位行
+    hit = conn.execute("SELECT 1 FROM ai_insight_prompt_config LIMIT 1").fetchone()  # 是否已有配置
+    if not hit:  # 首启插入默认模板（占位符与 ai_insight_service 一致）
+        conn.execute(
+            """INSERT INTO ai_insight_prompt_config
+            (name, system_prompt, user_prompt_template, is_default) VALUES (?,?,?,1)""",
+            (
+                DEFAULT_AI_INSIGHT_CONFIG_NAME,  # 显示名（每日报告 + Checklist）
+                DEFAULT_AI_INSIGHT_SYSTEM_PROMPT,  # 系统消息（含三大 Checklist）
+                DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE,  # 用户模板：四占位符由服务端注入
+            ),
+        )  # 结束 INSERT
+    row = conn.execute("SELECT 1 FROM ai_insight_llm_provider LIMIT 1").fetchone()  # 是否已有连接配置
+    if not row:  # 插入默认 OpenAI 兼容行（密钥由 env 或后台填）
+        conn.execute(
+            """INSERT INTO ai_insight_llm_provider
+            (name, base_url, model, timeout_sec, temperature, extra_headers_json, is_default)
+            VALUES (?,?,?,?,?,?,1)""",
+            (
+                "OpenAI 兼容（默认）",  # 名称
+                "https://api.openai.com/v1",  # 根
+                "gpt-4o-mini",  # 模型
+                120,  # 超时
+                0.3,  # 温度
+                "{}",  # 头
+            ),
+        )
+
+
+def apply_migrations(conn: MigrationConnection) -> None:
     c = _cols(conn, "app_user")
     if "role" not in c:
         conn.execute("ALTER TABLE app_user ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
@@ -318,6 +511,8 @@ def apply_migrations(conn: sqlite3.Connection | object) -> None:
                             {"id": "adm-tool-jsonld", "key": "sidebar.toolJsonLd", "label": "Tool JSON-LD", "path": "/admin/tool-json-ld", "icon": "Braces", "permission": "", "visible": True, "order": 13},
                             {"id": "adm-blocks", "key": "sidebar.siteBlocks", "label": "Site JSON", "path": "/admin/site-blocks", "icon": "Code2", "permission": "", "visible": True, "order": 7},
                             {"id": "adm-search-sugg", "key": "sidebar.searchSuggestions", "label": "Search suggestions", "path": "/admin/search-suggestions", "icon": "ListOrdered", "permission": "", "visible": True, "order": 8},
+                            {"id": "adm-site-submit", "key": "sidebar.siteSubmitForm", "label": "Submit page blocks", "path": "/admin/site-submit", "icon": "ClipboardList", "permission": "", "visible": True, "order": 9},
+                            {"id": "adm-site-dash", "key": "sidebar.siteDashboardForm", "label": "Dashboard blocks", "path": "/admin/site-dashboard", "icon": "LayoutTemplate", "permission": "", "visible": True, "order": 10},
                             {"id": "adm-home-seo", "key": "sidebar.homeSeoForm", "label": "Home SEO", "path": "/admin/home-seo", "icon": "Search", "permission": "", "visible": True, "order": 15},
                             {"id": "adm-i18n", "key": "sidebar.translations", "label": "Translations", "path": "/admin/translations", "icon": "Languages", "permission": "", "visible": True, "order": 16},
                             {"id": "adm-comp", "key": "sidebar.comparisons", "label": "Comparisons", "path": "/admin/comparisons", "icon": "GitCompare", "permission": "", "visible": True, "order": 17},
@@ -353,5 +548,99 @@ def apply_migrations(conn: sqlite3.Connection | object) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_user_favorite_user ON user_favorite(user_id)")  # 按用户查列表
     conn.execute("CREATE INDEX IF NOT EXISTS idx_user_favorite_slug ON user_favorite(tool_slug)")  # 按 slug 辅助统计/清理
 
+    _ensure_ai_insight_llm_provider_table(conn)  # 多 LLM 连接表（老库可能尚无）
+    _migrate_legacy_ai_insight_provider_settings(conn)  # 旧单行表迁移后 DROP
+    _ensure_ai_insight_run_llm_provider_id_column(conn)  # ai_insight_run 补 llm_provider_id
+    _ensure_ai_insight_seed(conn)  # AI 分析默认提示词与首条 provider（幂等）
+    _upgrade_legacy_ai_insight_prompt_seed(conn)  # 旧版单行种子升级到 Checklist 每日报告预设（仅全文匹配）
+
+    _ensure_outbound_click_table(conn)  # 出站官网点击表（老库补建，与 schema 一致）
+    _ensure_crawler_columns(conn)  # PROD-CRAWLER：调度与统计列（老库 ALTER）
     _ensure_admin_menu_extras(conn)  # 新后台页入口合并进 admin_settings（幂等）
     _ensure_dashboard_merge(conn)  # site_json.dashboard 缺键时与种子对齐（保留已有内容）
+
+
+def _ensure_outbound_click_table(conn: MigrationConnection) -> None:  # 老库无表时补 outbound_click_log
+    if table_column_names(conn, "outbound_click_log"):  # 已有表结构
+        return  # 幂等跳过
+    if is_pg_adapter(conn):  # PostgreSQL 方言
+        conn.execute(  # 与 schema.pg.sql 一致
+            """CREATE TABLE IF NOT EXISTS outbound_click_log (
+                id SERIAL PRIMARY KEY,
+                tool_slug TEXT NOT NULL,
+                page_path TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                user_id INTEGER REFERENCES app_user(id),
+                created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP::TEXT)
+            )"""
+        )
+    else:  # SQLite
+        conn.execute(  # 与 schema.sql 一致
+            """CREATE TABLE IF NOT EXISTS outbound_click_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tool_slug TEXT NOT NULL,
+                page_path TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                user_id INTEGER REFERENCES app_user(id),
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )"""
+        )
+    conn.execute(  # 按工具与时间查聚合
+        "CREATE INDEX IF NOT EXISTS idx_ocl_slug_time ON outbound_click_log(tool_slug, created_at)"
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ocl_time ON outbound_click_log(created_at)")  # 按时间窗扫
+
+
+def _ensure_crawler_columns(conn: MigrationConnection) -> None:  # 爬虫表增量列
+    csrc = table_column_names(conn, "crawler_source")  # 无表时为空集
+    if not csrc:  # 尚未建 crawler_source
+        return  # 跳过
+    if "auto_crawl_enabled" not in csrc:  # 定时总开关
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN auto_crawl_enabled INTEGER NOT NULL DEFAULT 0"
+        )
+    if "crawl_interval_minutes" not in csrc:  # 两次自动抓取最小间隔（分钟）
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN crawl_interval_minutes INTEGER NOT NULL DEFAULT 1440"
+        )
+    if "daily_max_items" not in csrc:  # 自然日内最多处理条数（预览行计）
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN daily_max_items INTEGER NOT NULL DEFAULT 1000"
+        )
+    if "scheduled_max_items_per_run" not in csrc:  # 单次自动任务 max_items 上限
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN scheduled_max_items_per_run INTEGER NOT NULL DEFAULT 100"
+        )
+    if "auto_dry_run" not in csrc:  # 自动任务是否仅预览
+        conn.execute("ALTER TABLE crawler_source ADD COLUMN auto_dry_run INTEGER NOT NULL DEFAULT 1")
+    if "auto_write_strategy" not in csrc:  # 自动任务写入策略（auto_dry_run=0 时）
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN auto_write_strategy TEXT NOT NULL DEFAULT 'insert_only'"
+        )
+    if "last_auto_run_at" not in csrc:  # 上次自动跑完时间
+        conn.execute("ALTER TABLE crawler_source ADD COLUMN last_auto_run_at TEXT")
+    if "daily_quota_date" not in csrc:  # 配额归属日 YYYY-MM-DD（服务器本地日）
+        conn.execute("ALTER TABLE crawler_source ADD COLUMN daily_quota_date TEXT")
+    if "daily_quota_used" not in csrc:  # 当日已消耗条数
+        conn.execute(
+            "ALTER TABLE crawler_source ADD COLUMN daily_quota_used INTEGER NOT NULL DEFAULT 0"
+        )
+    cjob = table_column_names(conn, "crawler_job")  # 任务表
+    if not cjob:  # 无表
+        return  # 跳过
+    if "trigger_type" not in cjob:  # manual / scheduled
+        conn.execute(
+            "ALTER TABLE crawler_job ADD COLUMN trigger_type TEXT NOT NULL DEFAULT 'manual'"
+        )
+    if "items_processed" not in cjob:  # 本任务预览行数
+        conn.execute(
+            "ALTER TABLE crawler_job ADD COLUMN items_processed INTEGER NOT NULL DEFAULT 0"
+        )
+    if "items_committed_insert" not in cjob:  # 入库 insert 数
+        conn.execute(
+            "ALTER TABLE crawler_job ADD COLUMN items_committed_insert INTEGER NOT NULL DEFAULT 0"
+        )
+    if "items_committed_update" not in cjob:  # 入库 update 数
+        conn.execute(
+            "ALTER TABLE crawler_job ADD COLUMN items_committed_update INTEGER NOT NULL DEFAULT 0"
+        )

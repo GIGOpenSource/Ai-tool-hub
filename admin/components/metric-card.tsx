@@ -19,7 +19,7 @@ export function MetricCard({
   const { t } = useI18n();
   const up = pct !== undefined && pct >= 0;
   return (
-    <div className="rounded-xl border border-purple-500/20 bg-[#120822]/60 p-4">
+    <div className="rounded-xl border border-admin-border/90 bg-admin-surface/60 p-4">
       <p className="text-xs text-gray-500 uppercase tracking-wide">{title}</p>
       {hint ? <p className="text-[10px] text-gray-500 leading-snug mt-1 normal-case">{hint}</p> : null}
       <p className="text-2xl font-semibold text-white mt-1 tabular-nums">{value}</p>

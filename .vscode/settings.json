@@ -1,0 +1,15 @@
+{
+  // 仓库根作为工作区：BasedPyright 读 python.pythonPath；Pylance 主要用 defaultInterpreterPath
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.pythonPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.venvPath": "${workspaceFolder}/backend",
+  "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.packageIndexDepths": [
+    { "name": "fastapi", "depth": 6 },
+    { "name": "starlette", "depth": 6 }
+  ],
+  "basedpyright.analysis.diagnosticMode": "workspace"
+}

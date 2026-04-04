@@ -28,10 +28,10 @@ export function ToolRejectDialog({ open, onClose, onConfirm }: Props) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-xl border border-purple-500/30 bg-[#1a0b2e] p-6 space-y-4">
+      <div className="w-full max-w-md rounded-xl border border-admin-border bg-admin-surface p-6 space-y-4">
         <h3 className="text-lg font-medium text-white">{t("reject.title")}</h3>
         <select
-          className="w-full rounded-lg bg-black/40 border border-purple-500/30 px-3 py-2 text-sm text-white"
+          className="w-full rounded-lg bg-black/40 border border-admin-border px-3 py-2 text-sm text-white"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         >

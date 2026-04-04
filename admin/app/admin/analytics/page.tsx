@@ -165,7 +165,7 @@ export default function AdminAnalyticsPage() {
             type="button"
             onClick={exportCsv}
             disabled={isLoading || (data?.data?.length ?? 0) === 0}
-            className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg border border-admin-border/90 bg-white/[0.04] px-3 py-2 text-sm text-gray-300 hover:bg-white/[0.07] disabled:opacity-40"
           >
             <Download className="w-4 h-4" />
             {t("analytics.exportCsv")}
@@ -212,7 +212,7 @@ export default function AdminAnalyticsPage() {
               title={k === "path" ? t("fieldHelp.analytics.groupByPath") : t("fieldHelp.analytics.groupByType")}
               onClick={() => setGroupBy(k)}
               className={`px-3 py-1.5 rounded-lg text-xs ${
-                groupBy === k ? "bg-purple-500/35 text-white" : "bg-white/5 text-gray-400"
+                groupBy === k ? "bg-white/10 text-white" : "bg-white/5 text-gray-400"
               }`}
             >
               {k === "path" ? t("analytics.groupByPath") : t("analytics.groupByType")}
@@ -231,7 +231,7 @@ export default function AdminAnalyticsPage() {
               title={t("fieldHelp.analytics.sortBy")}
               onClick={() => setSortBy(k)}
               className={`px-3 py-1.5 rounded-lg text-xs uppercase ${
-                sortBy === k ? "bg-cyan-500/25 text-cyan-200" : "bg-white/5 text-gray-400"
+                sortBy === k ? "bg-admin-highlight text-gray-300" : "bg-white/5 text-gray-400"
               }`}
             >
               {t("analytics.sortBy", { key: k })}
@@ -241,9 +241,9 @@ export default function AdminAnalyticsPage() {
         <FieldHint text={t("fieldHelp.analytics.sortBy")} />
       </div>
 
-      <div className="rounded-xl border border-purple-500/20 overflow-hidden">
+      <div className="rounded-xl border border-admin-border/90 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#120822] text-left text-gray-400">
+          <thead className="bg-admin-surface text-left text-gray-400">
             <tr>
               <ThHelp title={t("analytics.colType")} help={t("fieldHelp.analytics.colType")} />
               {groupBy === "path" && (
@@ -259,7 +259,7 @@ export default function AdminAnalyticsPage() {
               <ThHelp title={t("analytics.colBounce")} help={t("fieldHelp.analytics.colBounce")} />
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-500/10">
+          <tbody className="divide-y divide-white/[0.05]">
             {isLoading && (
               <tr>
                 <td colSpan={groupBy === "path" ? 8 : 6} className="p-6 text-gray-500">
@@ -273,7 +273,7 @@ export default function AdminAnalyticsPage() {
                 <tr key={r.page_path} className="hover:bg-white/[0.03]">
                   <td className="p-3 text-gray-400">{r.page_type}</td>
                   <td className="p-3 text-gray-200 max-w-[14rem]">{r.page_name_zh}</td>
-                  <td className="p-3 text-cyan-100/90 font-mono text-xs">{r.page_path}</td>
+                  <td className="p-3 text-gray-200/90 font-mono text-xs">{r.page_path}</td>
                   <td className="p-3 tabular-nums">{r.pv}</td>
                   <td className="p-3 tabular-nums">{r.uv}</td>
                   <td className="p-3 tabular-nums">{r.uid}</td>

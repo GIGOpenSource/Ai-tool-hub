@@ -54,10 +54,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0118] via-[#1a0b2e] to-[#0a0118] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-admin-bg via-zinc-950 to-admin-bg flex items-center justify-center p-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-md space-y-4 p-8 rounded-2xl border border-purple-500/25 bg-[#120822]/80"
+        className="w-full max-w-md space-y-4 p-8 rounded-2xl border border-admin-border/90 bg-admin-surface/80"
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -86,7 +86,7 @@ export default function LoginPage() {
           <label className="block text-xs text-gray-400 mb-1">{t("login.email")}</label>
           <FieldHint text={t("fieldHelp.login.email")} />
           <input
-            className="w-full rounded-lg bg-black/40 border border-purple-500/30 px-3 py-2 text-sm text-white mt-1"
+            className="w-full rounded-lg bg-black/40 border border-admin-border px-3 py-2 text-sm text-white mt-1"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
@@ -97,7 +97,7 @@ export default function LoginPage() {
           <FieldHint text={t("fieldHelp.login.password")} />
           <input
             type="password"
-            className="w-full rounded-lg bg-black/40 border border-purple-500/30 px-3 py-2 text-sm text-white mt-1"
+            className="w-full rounded-lg bg-black/40 border border-admin-border px-3 py-2 text-sm text-white mt-1"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
@@ -107,7 +107,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-purple-600 text-white text-sm font-medium disabled:opacity-50"
+          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-admin-btn to-zinc-700 hover:from-admin-btn-hover hover:to-zinc-600 text-white text-sm font-medium disabled:opacity-50"
         >
           {loading ? t("login.submitting") : t("login.submit")}
         </button>

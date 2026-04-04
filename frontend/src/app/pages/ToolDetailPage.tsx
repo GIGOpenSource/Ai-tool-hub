@@ -25,7 +25,7 @@ import { ReviewModal } from "../components/ReviewModal";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { useToolDetail } from "./tool/useToolDetail";
-import { apiDelete, apiGet, apiPost, getAccessToken } from "../../lib/api"; // 收藏增删与 JWT  Presence 校验
+import { apiDelete, apiGet, apiPost, getAccessToken, trackOutboundOfficialClick } from "../../lib/api"; // 收藏与出站埋点
 import { SEO } from "../components/SEO"; // 页面级 TDK 与 canonical
 import { JsonLd } from "../components/JsonLd"; // SoftwareApplication 结构化数据
 import { getPublicSiteOrigin } from "../../lib/siteUrl"; // 绝对 URL 生成
@@ -273,7 +273,17 @@ export function ToolDetailPage() {
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Button asChild className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white px-8">
-                      <a href={tool.website} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={tool.website} // 外链官网
+                        target="_blank" // 新标签
+                        rel="noopener noreferrer" // 安全与引用隔离
+                        onClick={() => {
+                          // 出站转化意向：供 AI 快照 traffic 段聚合（非内容爬虫）
+                          const slug =
+                            (tool.slug && String(tool.slug).trim()) || (id && String(id).trim()) || ""; // 与路由一致
+                          if (slug) trackOutboundOfficialClick(slug, toolPath); // 带会话 cookie 上报
+                        }}
+                      >
                         <ExternalLink className="w-5 h-5 mr-2" />
                         {t("tool.visitWebsite")}
                       </a>

@@ -23,6 +23,7 @@
 | **GPTs 与 API 数据** | GPT/API 名称、描述、原始链接 | `/gpt/{gpt-name}`, `/apis/s/{keyword}` | P2 | 作为平台功能的拓展数据储备。 |
 
 **OpenClaw 规则执行**：
+
 1. 将 `docs/data/openclaw_rules.json` 导入 OpenClaw 系统。
 2. 开启 Cloudflare 绕过模式（Headless 浏览器 + 代理池）。
 3. 设定抓取频率（建议单 IP < 20 次/分钟），优先抓取 P0 级数据。
@@ -62,6 +63,6 @@
 
 ## 五、 参考资料 (References)
 
-*   [1] TAAFT 竞品分析报告 v2.0 - `/home/ubuntu/competitor_analysis/TAAFT_Competitor_Analysis_Report_v2.md`
-*   [2] 运营需求文档 (ORD) - `/home/ubuntu/competitor_analysis/TAAFT_ORD_Document.md`
-*   [3] OpenClaw 抓取规则配置 - `/home/ubuntu/competitor_analysis/openclaw_rules.json`
+* [1] TAAFT 竞品分析报告 v2.0 - `/home/ubuntu/competitor_analysis/TAAFT_Competitor_Analysis_Report_v2.md`
+* [2] 运营需求文档 (ORD) - `/home/ubuntu/competitor_analysis/TAAFT_ORD_Document.md`
+* [3] OpenClaw 抓取规则配置 - `/home/ubuntu/competitor_analysis/openclaw_rules.json`

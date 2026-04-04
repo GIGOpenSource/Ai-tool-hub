@@ -224,6 +224,45 @@ def tool_traffic_counts(conn: sqlite3.Connection, tool_slug: str) -> dict[str, i
     }
 
 
+def outbound_official_clicks_summary(
+    conn: sqlite3.Connection,
+    *,
+    start_date: str,
+    end_date: str,
+    limit: int = 15,
+) -> dict[str, object]:
+    """近窗内工具详情「访问官网」出站点击汇总（按 slug 聚合），供 AI 流量快照与运营对照。"""
+    row = conn.execute(  # 总点击次数
+        """SELECT COUNT(*) AS total FROM outbound_click_log
+           WHERE date(created_at) >= ? AND date(created_at) <= ?""",
+        (start_date, end_date),
+    ).fetchone()  # 单行
+    total = int(row["total"] or 0) if row else 0  # 安全 int
+    rows = conn.execute(  # 按工具 slug 取 Top N
+        """SELECT o.tool_slug AS slug,
+                  COUNT(*) AS clicks,
+                  MAX(t.name) AS tool_name
+           FROM outbound_click_log o
+           LEFT JOIN tool t ON t.slug = o.tool_slug
+           WHERE date(o.created_at) >= ? AND date(o.created_at) <= ?
+           GROUP BY o.tool_slug
+           ORDER BY clicks DESC
+           LIMIT ?""",
+        (start_date, end_date, limit),
+    ).fetchall()  # 列表
+    top: list[dict[str, object]] = []  # 输出行
+    for r in rows:  # 逐条
+        nm = str(r["tool_name"] or "")  # 可能无匹配 tool 行
+        top.append(  # 结构化
+            {
+                "tool_slug": str(r["slug"] or ""),  # 路由 slug
+                "tool_name": nm[:120],  # 控制长度
+                "clicks": int(r["clicks"] or 0),  # 该窗内次数
+            }
+        )
+    return {"total_clicks": total, "top_tools": top}  # 注入 traffic_snapshot
+
+
 def _moderation_label(raw: str) -> str:
     s = (raw or "pending").strip().lower()  # 统一小写比较
     if s == "active":
@@ -312,7 +351,7 @@ def daily_tool_traffic_series(
         ds = cur.isoformat()  # 键
         rec = by_day.get(ds, {"pv": 0, "uv": 0})  # 无则零
         label = f"{cur.strftime('%b')} {cur.day}"  # 短英文月日
-        out.append({"date": label, "views": rec["pv"], "clicks": rec["uv"]})  # clicks 存 UV（无外链点击埋点）
+        out.append({"date": label, "views": rec["pv"], "clicks": rec["uv"]})  # clicks 字段历史含义为 UV；外链转化见 outbound_click_log
         cur += timedelta(days=1)  # 下一天
     return out
 

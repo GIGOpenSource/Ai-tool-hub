@@ -1,0 +1,9 @@
+{
+  "include": ["backend"],
+  "exclude": ["**/node_modules", "frontend", "admin"],
+  "pythonVersion": "3.11",
+  "venvPath": "backend",
+  "venv": ".venv",
+  "extraPaths": ["backend"],
+  "useLibraryCodeForTypes": true
+}
