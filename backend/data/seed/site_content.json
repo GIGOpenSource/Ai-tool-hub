@@ -403,6 +403,11 @@
     ]
   },
   "seo_robots": {},
+  "ai_insight_competitor_benchmarks": {
+    "benchmarks": [],
+    "last_updated": "",
+    "notes": "AI SEO 分析快照用对标数据（如 TAAFT 估算流量）；metrics 内请标注来源与日期。管理端「站点 JSON」选此键编辑。"
+  },
   "admin_settings": {
     "frontend_menu_items": [
       {"id": "nav-home", "key": "nav.home", "label": "Home", "path": "/", "icon": "Home", "permission": "", "visible": true, "order": 0},

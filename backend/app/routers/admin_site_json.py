@@ -30,6 +30,7 @@ _ALLOWED_KEYS = frozenset(
         "seo_sitemap_static",
         "seo_robots",  # robots.txt：Sitemap 行 / Disallow / raw_body（GET /api/seo/robots.txt 读取）
         "seo_tool_json_ld",  # 工具详情 JSON-LD 全局浅合并（GET /api/site/seo_tool_json_ld）
+        "ai_insight_competitor_benchmarks",  # AI SEO 快照竞品指标（POST /api/admin/ai-insights/run 注入 competitor_benchmark_snapshot）
     }
 )
 

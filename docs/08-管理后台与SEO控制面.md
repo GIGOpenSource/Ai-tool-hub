@@ -1,6 +1,6 @@
 # 后台管理面板 ↔ 前台展示 / SEO 控制面排查
 
-本文说明**管理后台各模块能否有效控制前台内容与 SEO**，并标出**缺口与绕行办法**（SQL、种子重跑、补 UI）。与 [02-架构与程序说明.md](./02-架构与程序说明.md)、[06-API接口参考.md](./06-API接口参考.md) 配合使用。
+本文说明**管理后台各模块能否有效控制前台内容与 SEO**，并标出**缺口与绕行办法**（SQL、种子重跑、补 UI）。与 [02-架构与程序说明.md](./手册-B-架构程序与API索引.md)、[06-API接口参考.md](./手册-B-架构程序与API索引.md) 配合使用。
 
 ---
 
@@ -10,11 +10,11 @@
 |------|----------------|------------------|
 | **页面级 SEO（TDK、canonical、og、noindex）** | 有（**Page SEO**） | **是**，经 `site_json.page_seo` → 前台 `useResolvedPageSeo` |
 | **工具目录与详情** | 有（**Tools** 列表/审核/编辑） | **是**，读写 `tool` 等表 |
-| **JSON 订阅导入（内容爬虫 MVP）** | 有（**`/admin/crawler`**，**数据采集**） | **是（经审核）**：拉取 JSON 写入 **`tool` 默认 `pending`** + `tool_feature` / `tool_pricing_plan` / `tool_screenshot`；见 [13-需求-内容爬虫与后台操作.md](./13-需求-内容爬虫与后台操作.md)、[06-API接口参考.md](./06-API接口参考.md) |
+| **JSON 订阅导入（内容爬虫 MVP）** | 有（**`/admin/crawler`**，**数据采集**） | **是（经审核）**：拉取 JSON 写入 **`tool` 默认 `pending`** + `tool_feature` / `tool_pricing_plan` / `tool_screenshot`；见 [13-需求-内容爬虫与后台操作.md](./手册-D-需求-商业化-AI-SEO-爬虫.md)、[06-API接口参考.md](./手册-B-架构程序与API索引.md) |
 | **用户评论 UGC** | 有（**Reviews**） | **是**，影响详情页已发布评论 |
 | **用户与角色** | 有（**Users**） | **间接**，主控账号权限与封禁，不直接改前台文案 |
 | **统计与大盘** | 有（**Dashboard / Analytics**） | **否**，只读分析，不改前台内容 |
-| **AI SEO / 流量解读** | **有**（**`/admin/ai-seo-insights`**，**CP-AI-SEO**） | **否**，仅生成**只读文本建议**与历史记录，**不自动写** `site_json` / 工具表；见 [12-需求-AI-SEO与流量分析助手.md](./12-需求-AI-SEO与流量分析助手.md) |
+| **AI SEO / 流量解读** | **有**（**`/admin/ai-seo-insights`**，**CP-AI-SEO**） | **一键分析**仍为**只读文本**；**§11 任务路径**：管理员 **批准** 后可 **应用** 写入 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**）；**源码类建议**不可 API 落盘，须 **PR/CI**；见 [12](./手册-D-需求-商业化-AI-SEO-爬虫.md) **§11** |
 | **商业化订单** | 有（**Monetization**） | **已登录**：个人中心列表 **`GET /api/me/orders`** + 详情页 **`/orders/:id`**（**`GET /api/me/orders/{id}`**）；**匿名**无订单区；工具详情/对比可显 **`promotion_active`**（弱曝光） |
 | **系统设置（菜单等）** | 有（**Settings**） | **是（前台主导航）**：`frontend_menu_items` 经 **GET /api/site/frontend_nav** 供 `Navigation.tsx`；失败或空数组则回退硬编码 |
 | **`site_json` 大块内容**（guide / more / sitemap 文案块等） | **有（站点 JSON）+ 若干专用页** | **是**：**站点 JSON** `GET/PUT /api/admin/site-json/{key}`（白名单）；**`page_seo`、`admin_settings` 除外**；**`home_seo`** 以 **「首页 SEO」分字段表单**为主（`/admin/home-seo`），整包 JSON 仅作进阶 |
@@ -89,7 +89,7 @@
 
 ## 6. 仍为缺口或依赖绕行（摘要）
 
-以下项在**总览表 §1**中或标注「部分」或矩阵中注明「仅 DB」；商业化 **v1 已落地**见 [**10-需求-商业化与订单.md**](./10-需求-商业化与订单.md)；汇总见 [**03-开放事项总表.md**](./03-开放事项总表.md) **§4.1**；演进 backlog 编号见同文档 **§4.2 BACKLOG-CP**。
+以下项在**总览表 §1**中或标注「部分」或矩阵中注明「仅 DB」；商业化 **v1 已落地**见 [**10-需求-商业化与订单.md**](./手册-D-需求-商业化-AI-SEO-爬虫.md)；汇总见 [**03-开放事项总表.md**](./手册-C-开放事项与演进对照.md) **§4.1**；演进 backlog 编号见同文档 **§4.2 BACKLOG-CP**。
 
 | 项 | 现状 | 绕行 |
 |----|------|------|
@@ -97,17 +97,17 @@
 | **大块 `site_json`** | `submit`、`dashboard` 等多为**整包 JSON** | **站点 JSON**；分字段表单可后续加 |
 | **对比页 JSON** | **Comparisons** 为整包编辑器 | 可加 Schema / 分块表单 |
 | **JSON-LD** | **`seo_tool_json_ld.global_merge`** 可配；专页 **`/admin/tool-json-ld`**（亦在站点 JSON） | 按工具 slug 逐条覆盖若需另立 |
-| **i18n 工程化** | **Translations** 已可维护表 | 翻译平台、批量导入导出等另立 |
-| **订单展示范围** | 已登录：列表 + **`/orders/:orderId`** 详情；**匿名无订单区** | 强曝光首页插卡等见 [**10-需求-商业化与订单.md**](./10-需求-商业化与订单.md) 后续迭代 |
-| **AI SEO / 流量分析助手** | **有**（**`/admin/ai-seo-insights`**） | 一键分析、提示词/模型配置、历史与详情；接口 [**06**](./06-API接口参考.md) **admin_ai_insights** |
+| **i18n 工程化** | **Translations** 已可维护表；**导入/导出**已有（见 **CP-I18N**） | 第三方翻译平台 API 对接另立 |
+| **订单展示范围** | 已登录：列表 + **`/orders/:orderId`** 详情；**匿名无订单区** | 强曝光首页插卡等见 [**10-需求-商业化与订单.md**](./手册-D-需求-商业化-AI-SEO-爬虫.md) 后续迭代 |
+| **AI SEO / 流量分析助手** | **有**（**`/admin/ai-seo-insights`**） | 一键分析、历史与详情；**§11** 任务/审计/回滚；接口 [**06**](./手册-B-架构程序与API索引.md) **admin_ai_insights** |
 
 ---
 
 ## 7. 与本仓库其它文档的关系
 
-- **收藏 / 个人动态**：**`/api/me/favorites*`**、**`GET /api/me/activity`**；**`site_json.profile`** 仍供个人中心静态块与兜底文案。**数据约定**见 [**03-开放事项总表.md**](./03-开放事项总表.md) §4。
+- **收藏 / 个人动态**：**`/api/me/favorites*`**、**`GET /api/me/activity`**；**`site_json.profile`** 仍供个人中心静态块与兜底文案。**数据约定**见 [**03-开放事项总表.md**](./手册-C-开放事项与演进对照.md) §4。
 - **推广订单**：**`GET /api/me/orders`**、**`GET /api/me/orders/{id}`** 与 **`monetization_order`** 对齐；**匿名**无订单模块；详情/对比 JSON 可含 **`promotion_active`**（与订单窗口一致）。
-- 接口路径与鉴权见 [06-API接口参考.md](./06-API接口参考.md)；跨文档待办见 [**03-开放事项总表.md**](./03-开放事项总表.md)。
+- 接口路径与鉴权见 [06-API接口参考.md](./手册-B-架构程序与API索引.md)；跨文档待办见 [**03-开放事项总表.md**](./手册-C-开放事项与演进对照.md)。
 
 ---
 

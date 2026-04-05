@@ -91,5 +91,6 @@ DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE = (
     "### SEO 与首页\n{{seo_snapshot}}\n\n"
     "### 索引与抓取配置（sitemap/robots；非内容爬虫任务）\n{{seo_indexing_snapshot}}\n\n"
     "### 流量与热门页（聚合，无个人数据）\n{{traffic_snapshot}}\n\n"
-    "### 站点规模\n{{site_stats_snapshot}}"
+    "### 站点规模与快照边界说明\n{{site_stats_snapshot}}\n\n"
+    "### 竞品对标（结构化；空对象表示未配置，勿编造第三方流量数值）\n{{competitor_benchmark_snapshot}}"
 )  # 用户模板结束；旧模板仍可用 {{crawler_snapshot}} 占位符（服务端注入同一段 JSON）

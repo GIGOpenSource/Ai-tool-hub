@@ -36,26 +36,35 @@ def _is_weak_jwt_secret(secret: str) -> bool:
     return False  # 通过粗检
 
 
+def production_jwt_secret_ok() -> tuple[bool, str]:  # 供 verify_release_env 与测试复用；非生产 (True, skipped_not_production)
+    if not is_production_environment():  # 非 production
+        return True, "skipped_not_production"  # 脚本侧跳过强检
+    raw = _jwt_secret_raw()  # 环境变量原文
+    effective = raw if raw.strip() else "dev-jwt-secret-change-me"  # 与 security 回落一致
+    if _is_weak_jwt_secret(effective):  # 弱/占位/过短
+        return False, "weak_or_missing_jwt_secret"  # 与 enforce 失败原因对齐
+    return True, "ok"  # 通过
+
+
 def enforce_production_secrets() -> None:
     """
     生产环境下若 JWT 为默认/占位/过短则退出进程。
     须在 import app.security 之后、签发 token 之前调用（ lifespan 最早处）。
     """
-    if not is_production_environment():
-        return  # 开发/预发未设 ENVIRONMENT 时不拦截
-    raw = _jwt_secret_raw()  # 先看环境变量是否显式设置
-    effective = raw if raw.strip() else "dev-jwt-secret-change-me"  # 与 security 默认对齐
-    if _is_weak_jwt_secret(effective):
-        print(  # 启动失败说明写到 stderr，便于 systemd/docker 日志采集
-            "ERROR: ENVIRONMENT=production 但 JWT_SECRET 未设置或为弱/占位值；"
-            "请设置至少 24 字符的随机串（见 docs/04-P0安全与联调备忘.md SEC-01）。",
-            file=sys.stderr,
-        )
-        sys.exit(1)  # 拒绝带弱密钥上线
+    ok, reason = production_jwt_secret_ok()  # 复用同一判定
+    if ok:  # 非生产或通过
+        return  # 不拦截
+    _ = reason  # 目前仅一种失败，保留便于日后细分日志
+    print(  # 启动失败说明写到 stderr，便于 systemd/docker 日志采集
+        "ERROR: ENVIRONMENT=production 但 JWT_SECRET 未设置或为弱/占位值；"
+            "请设置至少 24 字符的随机串（见 docs/手册-A-部署安全-发布与运维.md 内 P0 安全 / SEC-01）。",
+        file=sys.stderr,
+    )
+    sys.exit(1)  # 拒绝带弱密钥上线
 
 
 def warn_production_cors_origins() -> None:
-    # 生产：ALLOWED_ORIGINS 未设或为 * 时 stderr WARN，不 exit（与 OPS-ENV / 09 清单一致）
+    # 生产：ALLOWED_ORIGINS 未设或为 * 时 stderr WARN，不 exit（与 OPS-ENV / 手册-A 验收一致）
     if not is_production_environment():  # 非 production 不提示
         return  # 开发/预发保持安静
     raw = os.environ.get("ALLOWED_ORIGINS", "").strip()  # 逗号分隔 Origin 或 *
@@ -63,7 +72,7 @@ def warn_production_cors_origins() -> None:
         print(  # 跨域部署常见遗漏，仅警告
             "WARN: ENVIRONMENT=production 但未设置 ALLOWED_ORIGINS；"
             "若浏览器前端与 API 不同源，请求可能被 CORS 拦截。"
-            "同源反代场景可忽略。见 backend/.env.example 与 docs/09-上线发布验收清单.md §4。",
+            "同源反代场景可忽略。见 backend/.env.example 与 docs/手册-A-部署安全-发布与运维.md（原验收清单 §4）。",
             file=sys.stderr,
         )
         return  # 已输出一条即可

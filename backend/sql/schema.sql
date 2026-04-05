@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS ai_insight_llm_provider (
   timeout_sec INTEGER NOT NULL DEFAULT 120,
   temperature REAL NOT NULL DEFAULT 0.3,
   extra_headers_json TEXT NOT NULL DEFAULT '{}',
+  adapter TEXT NOT NULL DEFAULT 'openai_compatible',
   is_default INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -220,6 +221,51 @@ CREATE TABLE IF NOT EXISTS ai_insight_run (
 
 CREATE INDEX IF NOT EXISTS idx_ai_insight_run_created ON ai_insight_run(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_insight_run_admin ON ai_insight_run(admin_user_id);
+
+CREATE TABLE IF NOT EXISTS ai_insight_seo_task (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_run_id INTEGER NOT NULL REFERENCES ai_insight_run(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL DEFAULT 'page_seo_patch',
+  title TEXT NOT NULL DEFAULT '',
+  payload_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  approved_by_admin_user_id INTEGER REFERENCES app_user(id),
+  approved_at TEXT,
+  applied_at TEXT,
+  error_message TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_seo_task_run ON ai_insight_seo_task(source_run_id);
+CREATE INDEX IF NOT EXISTS idx_ai_seo_task_status ON ai_insight_seo_task(status);
+
+CREATE TABLE IF NOT EXISTS ai_insight_seo_apply_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_run_id INTEGER NOT NULL,
+  task_id INTEGER REFERENCES ai_insight_seo_task(id) ON DELETE SET NULL,
+  content_key TEXT NOT NULL,
+  before_payload_json TEXT NOT NULL,
+  after_payload_json TEXT NOT NULL,
+  applied_by_admin_user_id INTEGER REFERENCES app_user(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  rolled_back_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_run ON ai_insight_seo_apply_audit(source_run_id);
+CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_task ON ai_insight_seo_apply_audit(task_id);
+
+CREATE TABLE IF NOT EXISTS site_json_content_revision (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  content_key TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  admin_user_id INTEGER REFERENCES app_user(id),
+  source TEXT NOT NULL,
+  ref_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_site_json_rev_key_id ON site_json_content_revision(content_key, id DESC);
 
 CREATE TABLE IF NOT EXISTS crawler_source (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

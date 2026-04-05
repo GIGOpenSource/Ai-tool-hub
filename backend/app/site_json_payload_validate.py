@@ -55,6 +55,13 @@ def validate_seo_tool_json_ld(payload: dict[str, Any]) -> None:  # 工具详情 
         raise HTTPException(status_code=400, detail="site_json_schema:seo_tool_json_ld.global_merge_object")  # 路径式 detail
 
 
+def validate_home_seo_site_json(payload: dict[str, Any]) -> None:  # 顶栏与首页关键词（与 admin 首页 SEO 页字段一致）
+    for name in ("brand_title", "keywords", "brand_icon_emoji"):  # 已知字符串键
+        v = payload.get(name)  # 取值
+        if v is not None and not isinstance(v, str):  # 须字符串或省略
+            raise HTTPException(status_code=400, detail=f"site_json_schema:home_seo.{name}_string")  # 类型错
+
+
 def validate_seo_robots_site_json(payload: dict[str, Any]) -> None:  # robots.txt 运营配置
     rb = payload.get("raw_body")  # 全文覆盖
     if rb is not None and not isinstance(rb, str):  # 须字符串或省略
@@ -78,6 +85,25 @@ def validate_seo_robots_site_json(payload: dict[str, Any]) -> None:  # robots.tx
                 raise HTTPException(status_code=400, detail=f"site_json_schema:seo_robots.disallow_paths[{i}]")  # 下标
 
 
+def validate_ai_insight_competitor_benchmarks(payload: dict[str, Any]) -> None:  # AI SEO 竞品块（P-AI-03）
+    b = payload.get("benchmarks")  # 须为数组或省略
+    if b is not None:  # 有则校验
+        if not isinstance(b, list):  # 非数组
+            raise HTTPException(status_code=400, detail="site_json_schema:ai_insight_competitor_benchmarks.benchmarks_array")
+        for i, x in enumerate(b):  # 逐项须对象
+            if not isinstance(x, dict):  # 非法元素
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"site_json_schema:ai_insight_competitor_benchmarks.benchmarks[{i}]",
+                )
+    lu = payload.get("last_updated")  # 可选字符串
+    if lu is not None and not isinstance(lu, str):  # 须 str
+        raise HTTPException(status_code=400, detail="site_json_schema:ai_insight_competitor_benchmarks.last_updated_string")
+    notes = payload.get("notes")  # 可选字符串
+    if notes is not None and not isinstance(notes, str):  # 须 str
+        raise HTTPException(status_code=400, detail="site_json_schema:ai_insight_competitor_benchmarks.notes_string")
+
+
 def validate_site_json_for_key(key: str, payload: dict[str, Any]) -> None:  # 按键分发
     if key == "submit":  # 提交页元数据
         validate_submit_site_json(payload)  # 分类/pricing/ui
@@ -87,3 +113,7 @@ def validate_site_json_for_key(key: str, payload: dict[str, Any]) -> None:  # �
         validate_seo_tool_json_ld(payload)  # global_merge
     elif key == "seo_robots":  # robots.txt 与 Sitemap 声明
         validate_seo_robots_site_json(payload)  # raw_body / sitemap_url(s) / disallow_paths
+    elif key == "home_seo":  # 顶栏品牌与首页关键词
+        validate_home_seo_site_json(payload)  # brand_title / keywords / brand_icon_emoji
+    elif key == "ai_insight_competitor_benchmarks":  # 竞品对标 JSON
+        validate_ai_insight_competitor_benchmarks(payload)  # benchmarks / last_updated / notes

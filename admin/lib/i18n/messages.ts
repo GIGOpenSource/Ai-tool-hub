@@ -326,6 +326,7 @@ type MsgTree = {
     colStatus: string;
     colSummary: string;
     statusOk: string;
+    statusPending: string;
     statusFail: string;
     viewDetail: string;
     runDetailTitle: string;
@@ -339,6 +340,8 @@ type MsgTree = {
     tokens: string;
     loading: string;
     errRun: string;
+    errAbortTimeout: string;
+    errPollTimeout: string;
     confirmDeleteRun: string;
     confirmDeleteConfig: string;
     /** 分析页：选用哪条大模型连接 */
@@ -355,6 +358,72 @@ type MsgTree = {
     errLastProvider: string;
     /** 勾选后作为「默认启用」的大模型连接（分析未指定时用） */
     defaultLlmProvider: string;
+    /** 后台执行（HTTP 202）说明 */
+    deferLlmHint: string;
+    /** 产品开放决策折叠标题（P-AI-07） */
+    openDecisionsTitle: string;
+    /** 路径与占位 tbd 总述 */
+    openDecisionsIntro: string;
+    /** 键 data_residency_and_cross_border 说明 */
+    openDecisionsKeyDataResidency: string;
+    /** 键 model_output_format 说明 */
+    openDecisionsKeyModelOutput: string;
+    /** 键 cost_quota_and_retention 说明 */
+    openDecisionsKeyCostQuota: string;
+    /** 勿作法务/对外承诺唯一或充分依据（独立警示段） */
+    openDecisionsDisclaimer: string;
+    /** 后台执行工程边界折叠标题（BackgroundTasks / 多实例 / pending） */
+    deferEngineCaveatsTitle: string;
+    /** 后台执行工程边界正文 */
+    deferEngineCaveatsBody: string;
+    seoTasksSectionTitle: string;
+    seoTasksIntro: string;
+    seoTasksGenerate: string;
+    seoTasksGenerating: string;
+    seoTasksReplaceDrafts: string;
+    seoTasksColTitle: string;
+    seoTasksColKind: string;
+    seoTasksColStatus: string;
+    seoTasksColPayload: string;
+    seoTasksApprove: string;
+    seoTasksReject: string;
+    seoTasksApply: string;
+    seoTasksCodePrNoApply: string;
+    seoTasksCopyPayload: string;
+    seoTasksAuditSectionTitle: string;
+    seoTasksAuditColKey: string;
+    seoTasksAuditColCreated: string;
+    seoTasksAuditColStatus: string;
+    seoTasksAuditRollback: string;
+    seoTasksAuditRolledBack: string;
+    seoTasksDeleteDraft: string;
+    seoTasksStatusDraft: string;
+    seoTasksStatusApproved: string;
+    seoTasksStatusApplied: string;
+    seoTasksStatusFailed: string;
+    seoTasksStatusRejected: string;
+    seoTasksOnlySuccessRun: string;
+    seoTasksEmpty: string;
+    /** 大模型连接：协议适配器（v2.x） */
+    llmAdapter: string;
+    /** 当前唯一可选：OpenAI 兼容 chat/completions */
+    llmAdapterOpenAICompatible: string;
+    /** 主列表：存在 pending 分析时的运维提示 */
+    pendingRunsHint: string;
+    /** 详情页：二次确认区块标题 */
+    stepUpBlockTitle: string;
+    /** 共享口令输入说明 */
+    stepUpPasswordShared: string;
+    /** 登录密码复核说明 */
+    stepUpPasswordLogin: string;
+    /** 站点 JSON 修订史标题 */
+    seoRevisionsTitle: string;
+    /** 修订史：选择 content_key */
+    seoRevisionsKeyLabel: string;
+    /** 修订史：ref 列 */
+    seoRevisionsRefCol: string;
+    /** 修订史：无记录 */
+    seoRevisionsEmpty: string;
   };
   siteJson: {
     title: string;
@@ -393,6 +462,7 @@ type MsgTree = {
       dashboard: string;
       seo_sitemap_static: string;
       seo_robots: string;
+      ai_insight_competitor_benchmarks: string;
     };
   };
   comparisonAdmin: {
@@ -721,9 +791,10 @@ export const messages: Record<AdminLocale, MsgTree> = {
     aiSeoInsights: {
       title: "AI SEO 与流量分析",
       subtitle:
-        "服务端拉取 page_seo、home_seo、sitemap/robots 摘要与近 7 日流量聚合，与提示词一并 POST 至可配置的大模型；返回纯文本建议并记入历史。",
+        "服务端拉取 page_seo、home_seo、sitemap/robots、可选竞品对标 JSON、以及可配置窗口的流量聚合，与提示词一并同步 POST 至大模型；返回纯文本建议并记入历史。",
       costHint: "调用第三方大模型可能产生费用；生产环境请妥善保管 API Key。",
-      slowHint: "单次分析可能需数十秒，请勿重复点击。",
+      slowHint:
+        "默认：单次分析为同步 HTTP，耗时可接近所选「大模型连接」的超时（秒），网关或浏览器也可能提前断开。可勾选「后台执行」：先 HTTP 202 再由服务端调模型、本页轮询——工程实现与风险见标题区折叠「后台执行与运行边界」。请勿重复点击；常超时请增大 timeout 或缩短提示词。",
       tabRun: "开始分析",
       tabProvider: "大模型连接",
       tabConfigs: "提示词配置",
@@ -747,8 +818,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
       configName: "配置名称",
       systemPrompt: "系统消息（system）",
       userTemplate:
-        "用户消息模板（支持 {{seo_snapshot}} {{seo_indexing_snapshot}}；旧名 {{crawler_snapshot}} 仍兼容 {{traffic_snapshot}} {{site_stats_snapshot}}）",
-      placeholdersHint: "仅允许上述四个占位符；未知 {{}} 将无法保存。",
+        "用户消息模板（{{seo_snapshot}} {{seo_indexing_snapshot}} {{crawler_snapshot}} {{traffic_snapshot}} {{site_stats_snapshot}} {{competitor_benchmark_snapshot}}）",
+      placeholdersHint: "仅允许上述六个占位符（crawler 与 seo_indexing 注入同一段）；未知 {{}} 将无法保存。",
       defaultConfig: "设为默认",
       addConfig: "新增配置",
       saveConfig: "保存本配置",
@@ -760,6 +831,7 @@ export const messages: Record<AdminLocale, MsgTree> = {
       colStatus: "状态",
       colSummary: "摘要",
       statusOk: "成功",
+      statusPending: "进行中",
       statusFail: "失败",
       viewDetail: "详情",
       runDetailTitle: "分析记录详情",
@@ -773,6 +845,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
       tokens: "Token（入/出）",
       loading: "加载中…",
       errRun: "分析失败",
+      errAbortTimeout: "请求在等待大模型响应时超时或被浏览器中止；请增大「大模型连接」中的超时（秒）或检查网关 limit。",
+      errPollTimeout: "后台分析轮询超时：模型可能仍在服务端运行，请到「历史记录」查看该条是否稍后变为成功/失败。",
       confirmDeleteRun: "确定删除该条记录？",
       confirmDeleteConfig: "确定删除该提示词配置？",
       selectLlmProvider: "大模型连接（* 为当前默认启用）",
@@ -785,11 +859,67 @@ export const messages: Record<AdminLocale, MsgTree> = {
       savedLlmProvider: "已保存",
       errLastProvider: "至少保留一条大模型连接",
       defaultLlmProvider: "默认启用此连接（分析页未改选时优先使用）",
+      deferLlmHint:
+        "后台执行（HTTP 202）：先快速应答再由服务端调大模型，本页自动轮询。非独立任务队列，边界与风险见标题区「后台执行与运行边界」折叠。",
+      openDecisionsTitle: "快照 open_product_decisions（三键对齐 · 出境策略已确认）",
+      openDecisionsIntro:
+        "与注入大模型的快照一致：在用户消息的 site_stats_snapshot JSON 内，路径为 snapshot_limits_and_caveats.open_product_decisions。三键名与后端字段完全一致。**data_residency_and_cross_border** 已为产品确认值（允许 SEO 摘要与聚合流量发往含境外在内的管理员配置 endpoint）；其余两键值仍为占位语义，正式运营口径仍以内部评审为准。",
+      openDecisionsKeyDataResidency:
+        "数据驻留与跨境：**已确认**允许将本功能范围内的站点 SEO 摘要与聚合流量发往管理员配置的 LLM endpoint（含境外）；快照值为 allowed_overseas_llm_for_seo_summaries_and_aggregated_traffic。属地/合同另有约束时以法务为准。",
+      openDecisionsKeyModelOutput:
+        "模型输出形态及 Markdown 是否在管理端或对处渲染等；快照内当前示例值 plain_text_now_markdown_render_if_needed_tbd。",
+      openDecisionsKeyCostQuota:
+        "调用成本、配额与数据留存周期等运营策略；快照内当前示例值 tbd_ops_policy。",
+      openDecisionsDisclaimer:
+        "【重要 — 请勿误读】\n「唯一依据」指：不得仅凭本助手或单次分析运行结果，就当作法务意见、合规结论、监管申报材料，或对外合同、路演、客服答复的终局口径。\n「充分依据」指：不得认为只跑一次分析就已覆盖全部合规与商业风险；不能替代法务/合规/产品的书面确认与证据链。\n**出境发往 LLM** 已按产品确认写入快照；**输出形态、成本配额**等若仍占位，须另行走内部评审。本折叠说明不构成对外法务唯一依据。",
+      deferEngineCaveatsTitle: "后台执行与运行边界（defer_llm / BackgroundTasks）",
+      deferEngineCaveatsBody:
+        "勾选「后台执行」时，服务端在返回 HTTP 202 之后使用 Starlette/FastAPI 的 BackgroundTasks 在同进程内继续调用大模型——这是进程内待办，不是独立消息队列（如 Celery/RQ）或专用 worker 形态。\n\n多 worker / 多实例时，该次大模型调用只会在「处理该 POST 请求」的那台 API 实例上执行，其他实例不会自动接管同一 run。\n\n若进程在已 202 应答之后、尚未写入最终结果前崩溃或被强杀，库中可能出现长期 status=pending 的记录，需运维或管理员在「历史记录」人工核对，必要时删除后重跑或另行排查。\n\n同步 POST 路径不会出现上述 pending 卡住，但仍可能受反向代理/浏览器超时限制。",
+      seoTasksSectionTitle: "SEO 执行任务（须审批后写入）",
+      seoTasksIntro:
+        "从本报告用大模型抽取可写库任务（page_seo / home_seo / seo_robots）及「源码建议」草案。勾选「替换草案」会先删本记录下所有草案再生成。批准后「应用」仅写入站点 JSON（当前 API 所连库）；涉及仓库源码的项须走 PR/CI，本系统不会改磁盘。应用会记入下方审计表，可按快照回滚。",
+      seoTasksGenerate: "从报告生成草案",
+      seoTasksGenerating: "生成中…",
+      seoTasksReplaceDrafts: "替换已有草案",
+      seoTasksColTitle: "标题",
+      seoTasksColKind: "类型",
+      seoTasksColStatus: "状态",
+      seoTasksColPayload: "载荷（JSON）",
+      seoTasksApprove: "批准",
+      seoTasksReject: "拒绝",
+      seoTasksApply: "应用到站点配置",
+      seoTasksCodePrNoApply: "源码类：请通过 PR/CI 修改仓库，此处不可自动应用。可复制载荷。",
+      seoTasksCopyPayload: "复制载荷",
+      seoTasksAuditSectionTitle: "站点配置应用审计（可回滚）",
+      seoTasksAuditColKey: "content_key",
+      seoTasksAuditColCreated: "应用时间",
+      seoTasksAuditColStatus: "状态",
+      seoTasksAuditRollback: "回滚到此条之前",
+      seoTasksAuditRolledBack: "已回滚",
+      seoTasksDeleteDraft: "删除草案",
+      seoTasksStatusDraft: "草案",
+      seoTasksStatusApproved: "已批准",
+      seoTasksStatusApplied: "已应用",
+      seoTasksStatusFailed: "失败",
+      seoTasksStatusRejected: "已拒绝",
+      seoTasksOnlySuccessRun: "仅「成功」状态的报告可生成草案。",
+      seoTasksEmpty: "尚无任务，可点击上方按钮从报告生成。",
+      llmAdapter: "协议适配器",
+      llmAdapterOpenAICompatible: "OpenAI 兼容（chat/completions）",
+      pendingRunsHint:
+        "当前有分析任务处于 pending（后台执行或等待独立 worker）。可查看历史记录；多实例部署时可运行 backend/scripts/ai_insight_pending_worker.py。",
+      stepUpBlockTitle: "敏感操作二次确认（环境已启用）",
+      stepUpPasswordShared: "运维共享口令（AI_INSIGHT_STEP_UP_SHARED_SECRET）",
+      stepUpPasswordLogin: "当前管理员登录密码",
+      seoRevisionsTitle: "站点 JSON 修订史（本页 apply / 回滚）",
+      seoRevisionsKeyLabel: "查看键",
+      seoRevisionsRefCol: "元数据 ref_json",
+      seoRevisionsEmpty: "该键尚无修订记录。",
     },
     siteJson: {
       title: "站点内容块（JSON）",
       subtitle:
-        "白名单键对应 site_json 表；此处整包覆盖保存。page_seo 与 admin_settings（菜单）请在专用页编辑。seo_sitemap_static.urls 配 sitemap 静态 path；seo_robots 配 robots.txt（Sitemap 行、Disallow、或 raw_body 全文）。",
+        "白名单键对应 site_json 表；此处整包覆盖保存。page_seo 与 admin_settings（菜单）请在专用页编辑。seo_sitemap_static.urls 配 sitemap 静态 path；seo_robots 配 robots.txt；ai_insight_competitor_benchmarks 供 AI SEO 快照竞品指标（对标 TAAFT 等）。",
       selectKey: "选择块",
       hint: "须为合法 JSON 对象。错误内容可能导致前台接口 500 或页面空白，请先备份。",
       save: "保存",
@@ -832,6 +962,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
           "后端生成 sitemap.xml 时读取 payload.urls（path / priority / changefreq）。配错会影响收录，迁移种子见 migrate。",
         seo_robots:
           "GET /api/seo/robots.txt 读取。可选：sitemap_url（单条绝对 URL）、sitemap_urls（多条）、disallow_paths（每项以 / 开头）、raw_body（非空则整文件覆盖）。未配时 Sitemap 指向 {PUBLIC_SITE_URL}/api/seo/sitemap.xml。",
+        ai_insight_competitor_benchmarks:
+          "仅用于 POST /api/admin/ai-insights/run 组装的 {{competitor_benchmark_snapshot}}。benchmarks[] 每项含 label、可选 notes、可选 metrics（对象，请写数据来源与日期）。无公开 GET。",
       },
     },
     comparisonAdmin: {
@@ -1160,9 +1292,10 @@ export const messages: Record<AdminLocale, MsgTree> = {
     aiSeoInsights: {
       title: "AI SEO & traffic insights",
       subtitle:
-        "The server builds snapshots from page_seo, home_seo, sitemap/robots and 7-day traffic aggregates, sends them with your prompt to a configurable LLM API, stores plain-text advice and history.",
+        "The server builds snapshots from page_seo, home_seo, sitemap/robots, optional competitor benchmarks, and configurable-window traffic aggregates; sends them with your prompt to the LLM in one synchronous HTTP request; stores plain-text advice and history.",
       costHint: "External LLM calls may incur cost; protect API keys in production.",
-      slowHint: "One run may take tens of seconds; avoid double clicks.",
+      slowHint:
+        "Default: each run is one synchronous HTTP call up to the selected LLM timeout (seconds); gateways/browsers may cut off earlier. Enable “Run in background” for HTTP 202 + server-side LLM + polling—see the “Background execution & runtime limits” fold in the header for engineering caveats. Avoid double clicks; raise timeout or shorten prompts if you often time out.",
       tabRun: "Run analysis",
       tabProvider: "LLM connection",
       tabConfigs: "Prompt configs",
@@ -1186,8 +1319,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
       configName: "Config name",
       systemPrompt: "System message",
       userTemplate:
-        "User template ({{seo_snapshot}} {{seo_indexing_snapshot}}; legacy {{crawler_snapshot}} alias {{traffic_snapshot}} {{site_stats_snapshot}})",
-      placeholdersHint: "Only the four placeholders above are allowed.",
+        "User template ({{seo_snapshot}} {{seo_indexing_snapshot}} {{crawler_snapshot}} {{traffic_snapshot}} {{site_stats_snapshot}} {{competitor_benchmark_snapshot}})",
+      placeholdersHint: "Only the six placeholders above (crawler and seo_indexing inject the same JSON).",
       defaultConfig: "Set as default",
       addConfig: "Add config",
       saveConfig: "Save this config",
@@ -1199,6 +1332,7 @@ export const messages: Record<AdminLocale, MsgTree> = {
       colStatus: "Status",
       colSummary: "Summary",
       statusOk: "OK",
+      statusPending: "Pending",
       statusFail: "Failed",
       viewDetail: "Detail",
       runDetailTitle: "Run detail",
@@ -1212,6 +1346,10 @@ export const messages: Record<AdminLocale, MsgTree> = {
       tokens: "Tokens (in/out)",
       loading: "Loading…",
       errRun: "Analysis failed",
+      errAbortTimeout:
+        "The browser stopped waiting for the LLM response (timeout). Raise the LLM connection timeout (seconds) or check your reverse-proxy limits.",
+      errPollTimeout:
+        "Polling timed out: the LLM may still be running server-side—check History later for success/failure.",
       confirmDeleteRun: "Delete this run record?",
       confirmDeleteConfig: "Delete this prompt config?",
       selectLlmProvider: "LLM connection (* = default for analysis)",
@@ -1225,11 +1363,67 @@ export const messages: Record<AdminLocale, MsgTree> = {
       savedLlmProvider: "Saved",
       errLastProvider: "At least one LLM connection is required",
       defaultLlmProvider: "Use as default connection (when Run tab does not pick another)",
+      deferLlmHint:
+        "Run in background (HTTP 202): quick response, then the server calls the LLM and this page polls. Not a standalone job queue—see the header fold “Background execution & runtime limits”.",
+      openDecisionsTitle: "Snapshot open_product_decisions (three keys · cross-border LLM confirmed)",
+      openDecisionsIntro:
+        "Same as the LLM snapshot: inside the site_stats_snapshot JSON in the user message, the path is snapshot_limits_and_caveats.open_product_decisions. Key names match the backend exactly. data_residency_and_cross_border is now a product-confirmed value (SEO summaries + aggregated traffic may be sent to admin-configured LLM endpoints, including overseas); the other two keys remain placeholder-style until ops/legal closes wording.",
+      openDecisionsKeyDataResidency:
+        "Cross-border: product confirmed—this feature’s SEO summaries and aggregated traffic may be sent to the configured LLM API (including overseas providers). Snapshot value allowed_overseas_llm_for_seo_summaries_and_aggregated_traffic. Follow local legal/contract constraints where applicable.",
+      openDecisionsKeyModelOutput:
+        "Model output shape and whether Markdown is rendered in admin or externally; current example plain_text_now_markdown_render_if_needed_tbd.",
+      openDecisionsKeyCostQuota:
+        "Cost, quota, and retention/ops policy; current example tbd_ops_policy.",
+      openDecisionsDisclaimer:
+        "Important — please read carefully.\n“Sole basis” means you must not treat this assistant or a single run’s output as final legal advice, a compliance determination, a regulatory filing, or the definitive wording for contracts, investor decks, or customer support.\n“Sufficient basis” means one automated analysis does not exhaust compliance or commercial risk; it cannot replace written sign-off and evidence from legal/compliance/product.\nCross-border LLM use for SEO summaries + aggregated traffic is product-confirmed in the snapshot; for output format and cost/retention keys that remain placeholder-style, follow your internal review. This fold is not sole legal advice.",
+      deferEngineCaveatsTitle: "Background execution & runtime limits (defer_llm / BackgroundTasks)",
+      deferEngineCaveatsBody:
+        "With “Run in background”, after HTTP 202 the API continues the LLM call using Starlette/FastAPI BackgroundTasks in the same process—an in-process backlog, not a separate message queue (e.g. Celery/RQ) or dedicated worker tier.\n\nWith multiple workers/instances, that LLM call runs only on the API instance that handled the POST; other instances do not take over the same run.\n\nIf the process crashes or is killed after 202 but before the final DB update, rows may stay status=pending; ops/admins should check History manually and delete/re-run or investigate.\n\nThe synchronous POST path avoids that pending stuck class of failure but can still hit reverse-proxy/browser timeouts.",
+      seoTasksSectionTitle: "SEO apply tasks (approval required)",
+      seoTasksIntro:
+        "The model extracts applyable drafts for site JSON (page_seo / home_seo / seo_robots) plus code-repo hints. “Replace drafts” deletes existing drafts on this run first. After approve, Apply writes only to site JSON in the DB this API uses; repository changes must go through PR/CI—this feature never writes the repo. Each apply is audited below and can be rolled back if unchanged since apply.",
+      seoTasksGenerate: "Generate drafts from report",
+      seoTasksGenerating: "Generating…",
+      seoTasksReplaceDrafts: "Replace existing drafts",
+      seoTasksColTitle: "Title",
+      seoTasksColKind: "Kind",
+      seoTasksColStatus: "Status",
+      seoTasksColPayload: "Payload (JSON)",
+      seoTasksApprove: "Approve",
+      seoTasksReject: "Reject",
+      seoTasksApply: "Apply to site config",
+      seoTasksCodePrNoApply: "Code change: use PR/CI; cannot auto-apply here. You can copy the payload.",
+      seoTasksCopyPayload: "Copy payload",
+      seoTasksAuditSectionTitle: "Site config apply audit (rollback)",
+      seoTasksAuditColKey: "content_key",
+      seoTasksAuditColCreated: "Applied at",
+      seoTasksAuditColStatus: "Status",
+      seoTasksAuditRollback: "Rollback to before this apply",
+      seoTasksAuditRolledBack: "Rolled back",
+      seoTasksDeleteDraft: "Delete draft",
+      seoTasksStatusDraft: "Draft",
+      seoTasksStatusApproved: "Approved",
+      seoTasksStatusApplied: "Applied",
+      seoTasksStatusFailed: "Failed",
+      seoTasksStatusRejected: "Rejected",
+      seoTasksOnlySuccessRun: "Only successful runs can generate drafts.",
+      seoTasksEmpty: "No tasks yet. Use the button above to generate from the report.",
+      llmAdapter: "Protocol adapter",
+      llmAdapterOpenAICompatible: "OpenAI-compatible (chat/completions)",
+      pendingRunsHint:
+        "Some analysis runs are pending (in-process BackgroundTasks or waiting for a worker). Check History; for multi-instance APIs run backend/scripts/ai_insight_pending_worker.py.",
+      stepUpBlockTitle: "Step-up confirmation (enabled by environment)",
+      stepUpPasswordShared: "Shared operations password (AI_INSIGHT_STEP_UP_SHARED_SECRET)",
+      stepUpPasswordLogin: "Your current admin login password",
+      seoRevisionsTitle: "Site JSON revision history (apply / rollback on this page)",
+      seoRevisionsKeyLabel: "Content key",
+      seoRevisionsRefCol: "ref_json",
+      seoRevisionsEmpty: "No revisions for this key yet.",
     },
     siteJson: {
       title: "Site content blocks (JSON)",
       subtitle:
-        "Whitelisted keys map to site_json rows; whole payload is replaced on save. Use dedicated pages for page_seo and admin_settings (menus). seo_sitemap_static.urls = static sitemap paths; seo_robots = robots.txt (Sitemap lines, Disallow, or raw_body).",
+        "Whitelisted keys map to site_json rows; whole payload is replaced on save. Use dedicated pages for page_seo and admin_settings (menus). seo_sitemap_static / seo_robots as above; ai_insight_competitor_benchmarks = optional competitor metrics for AI SEO snapshots.",
       selectKey: "Block",
       hint: "Must be a valid JSON object. Bad data may break public APIs—back up first.",
       save: "Save",
@@ -1272,6 +1466,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
           "Feeds sitemap XML generation from payload.urls (path, priority, changefreq); bad rows hurt SEO.",
         seo_robots:
           "Read by GET /api/seo/robots.txt. Optional: sitemap_url (one absolute URL), sitemap_urls (list), disallow_paths (each starts with /), raw_body (non-empty replaces entire file). Default Sitemap line uses {PUBLIC_SITE_URL}/api/seo/sitemap.xml.",
+        ai_insight_competitor_benchmarks:
+          "Used only when building {{competitor_benchmark_snapshot}} for POST /api/admin/ai-insights/run. benchmarks[] entries: label, optional notes, optional metrics object (cite source and date). No public GET.",
       },
     },
     comparisonAdmin: {

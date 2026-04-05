@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 发布前接口抽样（对应 docs/09-上线发布验收清单.md §2.3），失败则非零退出。
+# 发布前接口抽样（对应 docs/手册-A-部署安全-发布与运维.md 内验收清单 §2.3），失败则非零退出。
 set -euo pipefail
 BASE_URL="${BASE_URL:-http://127.0.0.1:8000}"
 BASE_URL="${BASE_URL%/}" # 去掉尾斜杠便于拼接

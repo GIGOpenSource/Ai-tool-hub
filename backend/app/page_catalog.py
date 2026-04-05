@@ -32,7 +32,9 @@ STATIC_PAGE_LABELS: list[tuple[str, str, str]] = [
 
 STATIC_LABELS_BY_PATH: dict[str, tuple[str, str]] = {p: (zh, en) for p, zh, en in STATIC_PAGE_LABELS}
 
-_EXCLUDE_SITE_KEYS = frozenset({"admin_settings", "page_seo"})  # page_seo 为路径→SEO 映射，不参与 path 扫描
+_EXCLUDE_SITE_KEYS = frozenset(
+    {"admin_settings", "page_seo", "ai_insight_competitor_benchmarks"}
+)  # 无站内 path 扫描价值的 JSON 块
 
 
 def normalize_page_path(path: str) -> str:

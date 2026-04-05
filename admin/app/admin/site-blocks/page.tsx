@@ -23,6 +23,7 @@ const BLOCK_KEYS = [
   "seo_sitemap_static",
   "seo_robots",
   "seo_tool_json_ld",
+  "ai_insight_competitor_benchmarks", // AI SEO 竞品对标 JSON（注入 {{competitor_benchmark_snapshot}}）
 ] as const;
 
 /** 确保草稿为可编辑对象，顶层禁止数组 */
