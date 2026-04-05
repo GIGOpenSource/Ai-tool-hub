@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { Link } from "react-router"; // 分类独立 URL（PRD 静态目录）
 import { DynamicLucide } from "../../../lib/lucideMap";
 import { useLanguage } from "../../contexts/LanguageContext";
 import type { ApiCategory } from "./types";
@@ -28,15 +29,15 @@ export function HomeCategoryStrip({ categories, selectedSlug, setSelectedSlug }:
           <span className="text-sm text-gray-300 text-center">{t("home.all")}</span>
         </button>
         {categories.map((category) => (
-          <button
-            type="button"
+          <Link
             key={category.slug}
-            onClick={() => setSelectedSlug(category.slug)}
+            to={`/category/${encodeURIComponent(category.slug)}`}
             className={`flex flex-col items-center gap-3 p-4 bg-[#1a0b2e]/50 border rounded-xl transition-all group ${
               selectedSlug === category.slug
                 ? "border-cyan-400 bg-cyan-500/20"
                 : "border-purple-500/20 hover:border-cyan-400/50 hover:bg-purple-900/30"
             }`}
+            onClick={() => setSelectedSlug(category.slug)}
           >
             <DynamicLucide
               name={category.icon_key}
@@ -45,7 +46,7 @@ export function HomeCategoryStrip({ categories, selectedSlug, setSelectedSlug }:
               } group-hover:scale-110 transition-transform`}
             />
             <span className="text-sm text-gray-300 text-center">{category.name}</span>
-          </button>
+          </Link>
         ))}
       </div>
     </div>

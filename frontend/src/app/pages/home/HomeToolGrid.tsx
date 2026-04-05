@@ -14,6 +14,10 @@ type Props = {
   emptyMessage: string;
   clearFiltersLabel: string;
   onClearFilters: () => void;
+  /** 覆盖默认「精选」标题（分类页/搜索页用） */
+  gridHeading?: string;
+  /** 覆盖默认「热门」角标文案 */
+  gridBadge?: string;
 };
 
 export function HomeToolGrid({
@@ -24,13 +28,15 @@ export function HomeToolGrid({
   emptyMessage,
   clearFiltersLabel,
   onClearFilters,
+  gridHeading,
+  gridBadge,
 }: Props) {
   const { t } = useLanguage();
   return (
     <div className="container mx-auto px-4">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">{t("home.featured")}</h2>
-        <Badge className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-0">{t("home.trending")}</Badge>
+        <h2 className="text-2xl font-bold text-white">{gridHeading ?? t("home.featured")}</h2>
+        <Badge className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-0">{gridBadge ?? t("home.trending")}</Badge>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

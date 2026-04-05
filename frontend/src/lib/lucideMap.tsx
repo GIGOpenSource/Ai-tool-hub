@@ -1,12 +1,64 @@
-import type { ComponentType, CSSProperties } from "react"; // 图标组件与样式类型
-import * as Lucide from "lucide-react"; // 全量 lucide 命名空间，按名字动态取图标
+import type { ComponentType, CSSProperties } from "react"; // 图标组件类型
+import { // 仅打包站点 JSON / 种子实际用到的图标，避免 import * 拖入全量 lucide
+  BarChart3,
+  BookOpen,
+  Code,
+  FileCheck,
+  FileText,
+  Filter,
+  Heart,
+  HelpCircle,
+  Home,
+  Image,
+  Layers,
+  Mail,
+  Map,
+  MessageSquare,
+  Search,
+  Send,
+  Settings,
+  Share2,
+  Shield,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Upload,
+  User,
+  Video,
+  Zap,
+} from "lucide-react";
 
-type IconProps = { className?: string; style?: CSSProperties }; // 与常用 className/style 透传对齐
+type IconProps = { className?: string; style?: CSSProperties }; // 与 DynamicLucide 透传一致
 
-// 经 unknown 再断言：lucide 导出含 Icon 等非 FC 符号，与 Record<string, FC> 不完全重叠
-const lucideByName = Lucide as unknown as Record<string, ComponentType<IconProps>>;
+const MAP: Record<string, ComponentType<IconProps>> = { // 名称 → 组件（PascalCase 与种子 icon_key 一致）
+  BarChart3,
+  BookOpen,
+  Code,
+  FileCheck,
+  FileText,
+  Filter,
+  Heart,
+  HelpCircle,
+  Home,
+  Image,
+  Layers,
+  Mail,
+  Map,
+  MessageSquare,
+  Search,
+  Send,
+  Settings,
+  Share2,
+  Shield,
+  Star,
+  TrendingUp,
+  Upload,
+  User,
+  Video,
+  Zap,
+};
 
 export function DynamicLucide({ name, ...props }: { name: string } & IconProps) {
-  const Cmp = lucideByName[name] ?? Lucide.Sparkles; // 未知图标名回退 Sparkles
-  return <Cmp {...props} />; // 渲染动态图标
+  const Cmp = MAP[name] ?? Sparkles; // 未知 icon_key 回退 Sparkles（与旧行为一致）
+  return <Cmp {...props} />; // 渲染
 }

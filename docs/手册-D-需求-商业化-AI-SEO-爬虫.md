@@ -2,6 +2,8 @@
 
 本文档由原 **10 / 12 / 13** 合并。
 
+**维护约定**：**本文**随仓库**大功能/产品边界**更新；**接口路径、参数、错误码等细表**以 [手册-B](./手册-B-架构程序与API索引.md) **06 / 18** 为唯一详表，**勿**在本文重复冗长复制（见手册-B **§13**、本文 **PROD-AI-SEO §10**）。
+
 ---
 
 # 需求文档：商业化曝光与订单体验（PROD-MONET）
@@ -149,7 +151,7 @@
 | **BACKLOG 编号** | **CP-AI-SEO**（见 [03-开放事项总表.md](./手册-C-开放事项与演进对照.md) **§4.2**、[11-控制面演进需求-CP-BACKLOG.md](./手册-C-开放事项与演进对照.md)） |
 | **状态** | **MVP 已落地**；**§11 配置面写库与审计**已落地（多键 **`site_json`**、**`ai_insight_seo_apply_audit`**、回滚 API；源码类 **PR/CI**）；§8 后续里程碑仍有效 |
 | **优先级** | 建议 **P2**（运营增效类；依赖外部大模型 API 与成本预算） |
-| **关联能力** | 管理端已有 **Dashboard / Analytics**（只读统计）；**一键分析**产出只读报告正文；**§11** 在管理员 **批准** 后 **应用（apply）** 才写入白名单 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**），**无批准不写库**；**源码侧建议**仅 **`code_pr_hint`** 展示，**禁止**通过管理 API 写 Git/源码树，须 **PR/CI** |
+| **关联能力** | 管理端已有 **Dashboard / Analytics**（只读统计）；**一键分析**产出**只读报告正文**（**run 完成不写 `site_json`**）；**§11 闭环**：**生成 SEO 任务 → 管理员批准 → apply 自动合并**白名单 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**），**无批准不写库**；分析粒度为 **逐页**（路径维 **`page_seo`** + 流量等）；**每日定时任务**仅自动生成 **run/草案任务**，**不**跳过审批自动 **apply**；**源码侧建议**仅 **`code_pr_hint`** 展示，**禁止**通过管理 API 写 Git/源码树，须 **PR/CI** |
 
 ---
 
@@ -165,6 +167,22 @@
 2. **可配置提示词**：支持在后台维护至少一套**系统/任务说明**与**用户消息模板**（或等价：主提示词 + 占位符说明），便于迭代分析角度而无需发版（具体形态见 **§4.2**）。
 3. **可配置大模型**：支持配置 **API 基址、模型名、鉴权方式（如 Bearer API Key）**、超时与可选参数（如 `temperature`）；密钥**不得**明文回显给前端（见 **§5.1**）。
 4. **分析记录清单与详情**：每次分析生成一条**记录**（时间、操作者、所用提示词/模型快照、输入摘要、完整输出文本等）；列表可浏览，**点击行或「查看详情」**进入详情页/抽屉阅读全文。
+
+### 1.2.1 运行形态（产品约定）
+
+- **逐页分析**：以站内 **路径（path）** 为主维度汇总 **`site_json.page_seo`** 条目及 **按路径聚合的流量等指标** 注入提示词；首页/全站块以 **`home_seo`**、**`seo_robots` / sitemap 摘要** 等并列进入快照，模型输出须能落到「单页 vs 全站」两类建议（与 **`seo_snapshot`** 结构一致）。
+- **每日定时任务**：在 **自然日** 固定时刻 **自动触发** 一轮与手动「开始分析」相同的分析流水线（生成 **`ai_insight_run`**）；**仍遵守 §11**：仅产出报告与可选 **`draft` 任务**，**未经管理员批准不得 apply** 写库。
+
+**与当前实现对齐**：后端已具备 **`POST /api/admin/ai-insights/run`**、**`defer_llm` + BackgroundTasks** 与 **`scripts/ai_insight_pending_worker.py`**。**进程内日更调度已落地**：**`app/growth/ai_insight_scheduler.py`** + **`main.py` lifespan** 挂载 **`ai_insight_daily_scheduler_loop`**（与 **`crawler_scheduler_loop`** 并列）；表 **`ai_insight_scheduler_state`** 按自然日去重。默认 **`AI_INSIGHT_DAILY_SCHEDULER_ENABLED=0`**（避免误耗 token）；生产开启时设 **`AI_INSIGHT_DAILY_SCHEDULER_ENABLED=1`**，可选 **`AI_INSIGHT_DAILY_RUN_HOUR_LOCAL`**、**`AI_INSIGHT_DAILY_CONFIG_ID`**、**`AI_INSIGHT_DAILY_PROVIDER_ID`**（详见 **`backend/.env.example`**）。仍可用 **外部 cron 调 `POST /run`** 作为备选或多实例补充。
+
+### 1.2.2 已确认：分析 → SEO 任务清单 → 人工确认 → 自动优化本站 SEO
+
+以下与 **§11 实现**一致，作为产品闭环的**正式口径**（区别于「分析完仅阅读、永不写库」的误解）：
+
+1. **分析**：管理员手动或日更触发 **`POST /run`**，得到成功 **`ai_insight_run`** 与报告正文（**此步骤不写 `site_json`**）。
+2. **任务清单**：在运行详情页 **「从报告生成任务」**（**`POST .../runs/{id}/seo-tasks/generate`**），服务端抽取结构化 **`ai_insight_seo_task`**，默认 **`draft`**。
+3. **人工确认**：管理员审阅每条任务，**批准**（**`approve`**）；未批准则 **apply** 拒绝（**`not_approved`**）。可选环境 **二次确认**（**`AI_INSIGHT_STEP_UP_*`**）。
+4. **自动优化**：对已 **`approved`** 任务调用 **apply**（**`POST .../seo-tasks/{task_id}/apply`**），服务端**自动**将 **`page_seo` / `home_seo` / `seo_robots`** 的补丁合并进 **`site_json`**，经 **`site_json_payload_validate`**，并记 **审计**（**`ai_insight_seo_apply_audit`**），可 **rollback**。**`code_pr_hint`** **不**走 apply 写库。
 
 ### 1.3 非目标（本期不做或另立需求）
 
@@ -318,13 +336,13 @@
 | **v1.1** | 多提示词配置、快照字段完善、限流与 token 统计展示 |
 | **v1.2** | 异步任务队列、多供应商适配器、保留策略与导出 |
 | **§11（已落地）** | **已验证与代码一致**：成功分析 run → **`POST /api/admin/ai-insights/runs/{id}/seo-tasks/generate`** 生成 **`ai_insight_seo_task`（`draft`）** → 管理端 **批准** → **`POST .../seo-tasks/{id}/apply`** 仅合并写入白名单 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**），并经 **`site_json_payload_validate`**；**`code_pr_hint`** 调用 apply 返回 **`code_pr_hint_no_auto_apply`**——**代码变更只能走 PR/CI**，**禁止**本功能通过 API 改写仓库或服务器源码树 |
-| **v2.x（部分已落地）** | **异步 pending**：仍用 **`defer_llm` + BackgroundTasks**；另提供 **`backend/scripts/ai_insight_pending_worker.py`** 轮询 `pending` 与 API 内逻辑一致（多实例运维入口）。**多供应商适配器**：`ai_insight_llm_provider.adapter`（当前仅 **`openai_compatible`**，经 **`llm_adapter_dispatch`** 调用）。**二次确认**：`AI_INSIGHT_STEP_UP_MODE` + 共享口令或登录密码；**批准 / apply / rollback** 走 **`StepUpOptionalBody`**。**配置多版本**：表 **`site_json_content_revision`** + **`GET /api/admin/ai-insights/site-json-revisions`**。仍属路线图的项：**Celery/RQ 级队列**、**Anthropic 等非 OpenAI 兼容适配**、通用 **`site_json` 全键**修订 UI 等（见 **§11**） |
+| **v2.x（部分已落地）** | **异步 pending**：仍用 **`defer_llm` + BackgroundTasks**；另提供 **`backend/scripts/ai_insight_pending_worker.py`** 轮询 `pending` 与 API 内逻辑一致（多实例运维入口）。**多供应商适配器**：`ai_insight_llm_provider.adapter`（当前仅 **`openai_compatible`**，经根模块 **`backend/app/llm_adapter_dispatch.py`** 调用 **`app.growth.ai_insight_service`**）。**二次确认**：`AI_INSIGHT_STEP_UP_MODE` + 共享口令或登录密码；**批准 / apply / rollback** 走 **`StepUpOptionalBody`**。**配置多版本**：表 **`site_json_content_revision`** + **`GET /api/admin/ai-insights/site-json-revisions`**。**§1.2.1 日更**：**`ai_insight_daily_scheduler_loop`** + **`AI_INSIGHT_DAILY_*`**（见 **`.env.example`**）已落地。仍属路线图的项：**Celery/RQ 级队列**（立项输入见 [**手册-C §4.3**](./手册-C-开放事项与演进对照.md)）、**Anthropic 等非 OpenAI 兼容适配**、通用 **`site_json` 全键**修订 UI 等（见 **§11**） |
 
 ---
 
 ## 9. 开放问题与已确认项
 
-1. **供应商与数据出境**：**已确认（产品）**——**允许**将**站点 SEO 摘要**与**聚合流量**（本功能注入提示词的快照范围）发往管理员在「大模型连接」中配置的 **API endpoint**，**包括境外供应商**；运营仍可自行选用国内或私有化网关。若特定部署地、客户合同或监管另有约束，**以当地法务/合规书面结论为准**。快照字段 **`open_product_decisions.data_residency_and_cross_border`** 已与实现对齐（见 **`ai_insight_service.build_snapshots`**）。
+1. **供应商与数据出境**：**已确认（产品）**——**允许**将**站点 SEO 摘要**与**聚合流量**（本功能注入提示词的快照范围）发往管理员在「大模型连接」中配置的 **API endpoint**，**包括境外供应商**；运营仍可自行选用国内或私有化网关。若特定部署地、客户合同或监管另有约束，**以当地法务/合规书面结论为准**。快照字段 **`open_product_decisions.data_residency_and_cross_border`** 已与实现对齐（见 **`app.growth.ai_insight_service.build_snapshots`**）。
 2. **输出格式**：是否强制「纯文本」还是允许轻量 Markdown（影响 XSS 与渲染组件选型）——**仍为开放**（快照内 **`model_output_format`** 仍为占位语义）。
 3. **成本归属**：按调用次数计费还是包月；是否需在记录中展示估算费用——**仍为开放**（快照内 **`cost_quota_and_retention`** 仍为占位语义）。
 
@@ -332,9 +350,9 @@
 
 ## 10. 文档维护
 
+- **本文**（手册-D：商业化 / AI SEO / 爬虫等**需求与验收**）：随仓库**大功能、产品边界、流程闭环**变更更新；**HTTP 路径、参数、错误码、接口长表**等**不在本文展开第二份**，请只改 [手册-B](./手册-B-架构程序与API索引.md) 内 **「REST API 接口清单」（旧编号 **06**）** 与必要时 **「REST API 完整接口文档」（18）**，避免与 **06** 双处冗长复制（与手册-B **§13** 一致）。
 - 立项后：将 **CP-AI-SEO** 状态从「待立项」改为「进行中/已落地」，并同步 [03-开放事项总表.md](./手册-C-开放事项与演进对照.md) **§4.2**、[11-控制面演进需求-CP-BACKLOG.md](./手册-C-开放事项与演进对照.md)、[08-管理后台与SEO控制面.md](./08-管理后台与SEO控制面.md) 矩阵。
-- 接口定稿后：在 [06-API接口参考.md](./手册-B-架构程序与API索引.md) 增补本节路径与鉴权说明。
-- **扩展 §11**（新 `kind`、二次密码、多版本历史等）时：同步 [11-控制面演进需求-CP-BACKLOG.md](./手册-C-开放事项与演进对照.md) **CP-AI-SEO** 缺口描述，并更新 **§11「已落地 / 仍为后续」** 分界。
+- **扩展 §11**（新 `kind`、二次密码、多版本历史等）时：同步 [11-控制面演进需求-CP-BACKLOG.md](./手册-C-开放事项与演进对照.md) **CP-AI-SEO** 缺口描述，并更新 **§11「已落地 / 仍为后续」** 分界；**接口定稿细节**仍归 **06 / 18**。
 
 ---
 

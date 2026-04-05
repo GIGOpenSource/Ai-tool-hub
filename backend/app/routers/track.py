@@ -2,15 +2,34 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from app.db import get_db
 from app.deps_auth import get_optional_user_id
+from app.track_rate_limit import check_track_rate_limit  # 按 IP 限流防刷库
 
 router = APIRouter(tags=["track"])
+
+
+def _client_ip(request: Request) -> str:  # 优先 X-Forwarded-For 首段（反代后真实客户端）
+    xff = (request.headers.get("x-forwarded-for") or "").strip()  # 代理链
+    if xff:  # 有转发头
+        first = xff.split(",")[0].strip()  # 最左一般为客户端
+        return (first[:128] if first else "unknown")  # 截断防超长键
+    host = request.client.host if request.client else ""  # 直连对端地址
+    return (host or "unknown")[:128]  # 兜底 unknown
+
+
+def _enforce_track_limit(request: Request, *, kind: Literal["pv", "outbound"]) -> None:  # 两类 POST 分别计数
+    try:  # 限流异常统一转 429
+        check_track_rate_limit(client_ip=_client_ip(request), kind=kind)  # IP 滑动窗口或 Redis
+    except ValueError as e:  # rate_limited_track
+        if str(e) == "rate_limited_track":  # 约定码
+            raise HTTPException(status_code=429, detail="rate_limited_track") from e  # 429
+        raise  # 其它错误原样上抛
 
 
 def _previous_path_match_candidates(previous_path: str) -> list[str]:
@@ -43,6 +62,7 @@ def track_outbound_official_click(
     user_id: Optional[int] = Depends(get_optional_user_id),
 ) -> dict[str, Any]:
     """记录工具详情页「访问官网」出站意向；与 PROD-CRAWLER 无关。未识别会话时下发 track_sid 与 PV 埋点一致。"""
+    _enforce_track_limit(request, kind="outbound")  # 按 IP 限流，防刷 outbound_click_log
     sid = request.cookies.get("track_sid")  # 与 /track 共用会话 cookie
     if not sid:  # 无则签发
         sid = str(uuid.uuid4())  # 新会话 id
@@ -82,6 +102,7 @@ def track_page_view(
     user_id: Optional[int] = Depends(get_optional_user_id),
 ) -> dict[str, Any]:
     """无 Cookie 则下发 track_sid；带上一页与停留时间时更新最近一条同会话 PV 的 dwell_seconds。"""
+    _enforce_track_limit(request, kind="pv")  # 按 IP 限流，防刷 page_view_log
     sid = request.cookies.get("track_sid")
     if not sid:
         sid = str(uuid.uuid4())

@@ -149,6 +149,13 @@ def build_tracked_path_list(conn: sqlite3.Connection) -> tuple[list[str], dict[s
         if p not in config_labels:
             config_labels[p] = (f"对比落地页：{slug}", f"Compare page — {slug}")
 
+    for row in conn.execute("SELECT slug FROM category WHERE slug IS NOT NULL AND slug != '' ORDER BY slug"):
+        cslug = str(row["slug"])  # 分类 slug
+        p = f"/category/{cslug}"  # 与前台路由一致
+        push_raw(p)  # 纳入可跟踪路径（Page SEO / 大盘）
+        if p not in config_labels:
+            config_labels[p] = (f"分类：{cslug}", f"Category — {cslug}")  # 兜底标签
+
     for row in conn.execute("SELECT slug FROM tool WHERE slug IS NOT NULL AND slug != '' ORDER BY id"):
         push_raw(f"/tool/{row['slug']}")
 
@@ -184,6 +191,10 @@ def labels_for_path(
         rest = path[len("/category/") :].split("/")[0]
         if rest:
             return (f"分类页：{rest}", f"Category — {rest}")
+    if path.startswith("/s/"):
+        rest = path[len("/s/") :].split("/")[0]
+        if rest:
+            return (f"搜索：{rest}", f"Search — {rest}")
     return (f"其它页面：{path}", f"Other — {path}")
 
 

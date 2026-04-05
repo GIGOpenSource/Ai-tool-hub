@@ -52,6 +52,7 @@ export type FieldHelpTree = {
     pricing: string;
     icon: string;
     category: string;
+    complexity: string;
   };
   users: {
     colUid: string;
@@ -188,6 +189,8 @@ export const fieldHelpZh: FieldHelpTree = {
     pricing: "定价模式文案（如 Free / Paid），与筛选展示一致。",
     icon: "单字符 Emoji 或简短图标占位，用于无 Logo 时展示。",
     category: "决定工具出现的目录；选项来自公开分类接口。",
+    complexity:
+      "列表推荐 1.0 流量层质量系数：simple=0.8、medium=1.0、high=1.2；改后待定时任务或手动脚本重算 recommend_score。",
   },
   users: {
     colUid: "用户主键 ID。",
@@ -325,6 +328,8 @@ export const fieldHelpEn: FieldHelpTree = {
     pricing: "Pricing label (Free / Paid, …) shown in filters.",
     icon: "Emoji or short icon token if no logo asset.",
     category: "Directory placement; options from the public category API.",
+    complexity:
+      "Recommendation v1 traffic-layer multiplier: simple=0.8, medium=1.0, high=1.2; recompute scores after changes.",
   },
   users: {
     colUid: "User id.",

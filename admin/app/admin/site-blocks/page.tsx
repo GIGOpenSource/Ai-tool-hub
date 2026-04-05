@@ -10,6 +10,7 @@ import { SiteJsonVisualEditor } from "@/components/site-json-visual-editor"; // 
 
 /** 与后端 admin_site_json._ALLOWED_KEYS 顺序一致，便于运营扫览 */
 const BLOCK_KEYS = [
+  "home_seo", // 与 GET /api/site/home_seo、专用页 /admin/home-seo 同源；此处供整包 JSON 兜底编辑
   "ui_toasts",
   "guide",
   "more",
@@ -24,6 +25,7 @@ const BLOCK_KEYS = [
   "seo_robots",
   "seo_tool_json_ld",
   "ai_insight_competitor_benchmarks", // AI SEO 竞品对标 JSON（注入 {{competitor_benchmark_snapshot}}）
+  "recommend_algo_v1", // 工具列表推荐 1.0：权重/衰减/开关（GET /api/tools 排序）
 ] as const;
 
 /** 确保草稿为可编辑对象，顶层禁止数组 */

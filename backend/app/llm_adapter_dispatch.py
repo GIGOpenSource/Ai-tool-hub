@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any  # Row 形态因驱动而异
 
-from app.ai_insight_service import call_openai_compatible_chat  # OpenAI 兼容 chat/completions
+from app.growth.ai_insight_service import call_openai_compatible_chat  # OpenAI 兼容 chat/completions
 
 
 def _adapter_name(prow: Any) -> str:  # noqa: ANN401 — sqlite Row

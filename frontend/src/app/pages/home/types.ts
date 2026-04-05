@@ -9,6 +9,7 @@ export type ApiTool = {
   category_slug: string;
   review_count: number;
   popularity: number;
+  recommend_score: number; // 与 GET /api/tools 排序一致（推荐 1.0）；未返回时前端按 0
   created_at: string;
 };
 

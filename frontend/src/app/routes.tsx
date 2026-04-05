@@ -22,16 +22,24 @@ const SupportContactPage = lazy(() => import("./pages/support/SupportContactPage
 const SupportPrivacyPage = lazy(() => import("./pages/support/SupportPrivacyPage").then((m) => ({ default: m.SupportPrivacyPage })));
 const SupportTermsPage = lazy(() => import("./pages/support/SupportTermsPage").then((m) => ({ default: m.SupportTermsPage })));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
+const CategoryBrowsePage = lazy(() =>
+  import("./pages/CategoryBrowsePage").then((m) => ({ default: m.CategoryBrowsePage })),
+);
+const SearchResultsPage = lazy(() =>
+  import("./pages/SearchResultsPage").then((m) => ({ default: m.SearchResultsPage })),
+);
 
 /**
  * 全局路由表。TrackingLayout 包裹子路由以在路由变化时上报 /api/track。
- * /tool/:id 的 id 实为后端工具 slug。
+ * /tool/:id 的 id 实为后端工具 slug；/category/:slug、/s/:keyword 为 PRD 分类与搜索落地页。
  */
 export const router = createBrowserRouter([
   {
     Component: TrackingLayout,
     children: [
       { path: "/", Component: HomePage },
+      { path: "/category/:slug", Component: CategoryBrowsePage },
+      { path: "/s/:keyword", Component: SearchResultsPage },
       { path: "/tool/:id", Component: ToolDetailPage },
       { path: "/compare", Component: CompareToolsPage },
       { path: "/compare/:toolName", Component: ComparisonPage },

@@ -4,13 +4,13 @@ from __future__ import annotations
 import json  # 快照解析
 import time  # 计时
 
-from app.ai_insight_service import resolve_llm_api_key  # 解析密钥
+from app.growth.ai_insight_service import resolve_llm_api_key  # 解析密钥
 from app.db import get_db  # 连接上下文
 from app.llm_adapter_dispatch import call_llm_chat_for_provider  # 多适配器入口
 
 
 def finalize_pending_ai_insight_run(run_id: int) -> None:
-    """与 routers.admin_ai_insights 原 _finalize_ai_insight_run_pending 逻辑一致；独立模块供脚本 import。"""
+    """与 routers.growth.admin_ai_insights 原 _finalize_ai_insight_run_pending 逻辑一致；独立模块供脚本 import。"""
     t0 = time.perf_counter()  # 起点
     try:  # 统一兜底
         with get_db() as conn:  # 独立连接

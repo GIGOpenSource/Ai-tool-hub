@@ -28,7 +28,7 @@
 
 | 动作 | 说明 |
 |------|------|
-| 接口抽样 | 新增 **`backend/scripts/publish_smoke.sh`**：`BASE_URL` 下校验 `POST /api/submissions/tool`→401、`GET /api/tools`、`GET /api/site/frontend_nav`、`GET /api/seo/robots.txt` 等（与 [09-上线发布验收清单.md](./手册-A-部署安全-发布与运维.md) §2.3 对齐）。用法：`BASE_URL=https://api.example.com ./backend/scripts/publish_smoke.sh` |
+| 接口抽样 | 新增 **`backend/scripts/publish_smoke.sh`**：`BASE_URL` 下校验未登录 `POST /api/submissions/tool`（**合法 JSON 体**）→401、`GET /api/tools`、`GET /api/site/frontend_nav`、`GET /api/seo/robots.txt` 等（与 [09-上线发布验收清单.md](./手册-A-部署安全-发布与运维.md) §2.3 对齐）。用法：`BASE_URL=https://api.example.com ./backend/scripts/publish_smoke.sh` |
 | CI 门禁 | **`.github/workflows/ci.yml`**：三端构建 + 本机起 API 后跑 **`publish_smoke.sh`**（**不能替代** TC-EXEC，仅防明显回归）。 |
 | 人工范围不变 | 前台全路由、管理端各页仍以 **§2.1～§2.2** 走查为主；脚本**不能替代** TC-EXEC。 |
 
@@ -85,7 +85,7 @@
 | **`backend/scripts/verify_release_env.py`** | **SEC-01**（仅当 **`ENVIRONMENT=production`** 时强检 JWT）、**OPS-ENV**（CORS WARN）、**ENG-PG**（若 **PG** 则 **`SELECT 1`**）；**exit 非 0** 表示须修环境 |
 | **`backend/scripts/publish_smoke.sh`** | 对 **`BASE_URL`** 的公开接口子集（与 **TC-EXEC** 自动化子集对齐） |
 
-**CI**：**`.github/workflows/ci.yml`** 在 **`backend-py-compile`** 任务中执行 **`verify_release_env.py`**（默认非 production，用于防脚本回归）。
+**CI**：**`.github/workflows/ci.yml`** 在 **`backend-py-compile`** 任务中执行 **`ai_insight_snapshots_acceptance.py`**、**`crawler_acceptance.py`**、**`verify_release_env.py`**（默认非 production，用于防脚本回归）。
 
 ---
 
@@ -113,12 +113,12 @@
 
 | ID | 主题 | 说明 | 状态 |
 |----|------|------|------|
-| **CP-SITEJSON** | 大块 `site_json` | **`submit` / `dashboard`** 已有分字段页；其余键见站点 JSON | **部分已落地** |
+| **CP-SITEJSON** | 大块 `site_json` | **`submit` / `dashboard`** 已有分字段页；**`home_seo`** 有专页且已纳入「站点 JSON」下拉；其余键仍用整包编辑 | **部分已落地** |
 | **CP-COMPARE** | 对比页编辑 | **`/admin/comparisons`** 可视化 + JSON 双模式 | **已落地** |
 | **CP-JSONLD** | 结构化数据 | **`seo_tool_json_ld.global_merge`** + **`/admin/tool-json-ld`** 专页 | **已落地** |
 | **CP-I18N** | i18n 工程化 | 表维护 + **导入/导出** 已有；第三方翻译平台对接 | **部分已落地**（平台对接仍待外部立项） |
 | **CP-MONET-RE** | 商业化后续 | **续购 / 再次下单**、**首页·分类强曝光**、法务话术与隐私条款覆盖 | 见 [10-需求-商业化与订单.md](./手册-D-需求-商业化-AI-SEO-爬虫.md) §3.1、§4、§6 |
-| **CP-AI-SEO** | AI SEO / 流量分析 | 管理端 **`/admin/ai-seo-insights`** + **`/api/admin/ai-insights/*`**：提示词、模型连接、一键分析、历史与详情；**§11** 多键任务写 **`site_json`**、审计与回滚 | **MVP + §11 配置面已落地**；异步队列/多供应商等见 [12](./手册-D-需求-商业化-AI-SEO-爬虫.md) §8 |
+| **CP-AI-SEO** | AI SEO / 流量分析 | 管理端 **`/admin/ai-seo-insights`** + **`/api/admin/ai-insights/*`**（路由源码 **`routers/growth/admin_ai_insights.py`**，业务 **`app/growth/ai_insight_*`**）：提示词、模型连接、一键分析、历史与详情；**§11** 多键任务写 **`site_json`**、审计与回滚 | **MVP + §11 配置面已落地**；异步队列/多供应商等见 [手册-D §8](./手册-D-需求-商业化-AI-SEO-爬虫.md) |
 
 **CP-SITEJSON / CP-MONET-RE / 翻译平台** 等「待立项」条目的**验收与立项输入**见 [**21-SEC-OPS-TC-ENG-P-AI策略与Backlog对照.md**](./手册-C-开放事项与演进对照.md) **§3**（与 [11](./手册-C-开放事项与演进对照.md) 各节 **立项门槛** 一致）。
 
@@ -130,6 +130,16 @@
 | **订单与商业化展示** | 见 **§4.1** 与 [08-管理后台与SEO控制面.md](./08-管理后台与SEO控制面.md) 订单相关行 |
 
 **数据约定**：收藏 **`/api/me/favorites*`** + **`user_favorite`**；活动 **`GET /api/me/activity`**；**`site_json.profile`** 供个人中心静态文案与兜底。
+
+### 4.3 立项收口：TMS、异步队列、合规风控（与 §4.2 对照）
+
+本节把「仍待外部立项」的 **CP-I18N / CP-AI-SEO / 合规** 写成**可验收输入**，避免只在总表里一句带过。
+
+| 主题 | 仓库内已具备 | 立项时需拍板的内容 |
+|------|----------------|---------------------|
+| **CP-I18N → 外部 TMS** | 管理端 **`translation`** 表维护；**导入/导出** JSON | 选定 TMS（或供应商 API）；**语言对**与 **msg_key 命名**是否与现有键一致；**回灌路径**（继续用手动导入 / 新增带 **HMAC 的回调端点**）；**幂等策略**（按 `locale + msg_key` upsert）；是否只同步白名单前缀（如 `nav.*`、`discover.*`） |
+| **CP-AI-SEO → 异步队列** | 进程内限流、**`scripts/ai_insight_pending_worker.py`**、日更调度 **`AI_INSIGHT_DAILY_*`** | Broker（Redis/RabbitMQ 等）与 **任务模型**（是否与 `ai_insight_run` 一行对应）；**多 API 实例**下由谁消费；**失败重试与死信**；环境变量命名（示例：预留 **`AI_INSIGHT_QUEUE_MODE`**，见 **`backend/.env.example`**） |
+| **合规与风控** | 生产 **JWT / CORS**、工具 **`moderation_status`**、评论 **`ugc_status`**、管理端审核、**AI SEO** 限流；**`POST /api/track`** / **`POST /api/track/outbound`** **按 IP 限流**（**`TRACK_*_RATE_LIMIT_*`**，可选 **`TRACK_RATE_LIMIT_REDIS_URL`**，超限 **429 `rate_limited_track`**）；**`UGC_BLOCKED_SUBSTRINGS`** 对 **`POST /api/submissions/tool`**（**ASCII 单词形边界匹配**，短语/中文子串，**400 `ugc_blocked_substring`**） | **WAF / Bot 管理**、全站 **Captcha**、**第三方文本/图片审核 API**、隐私与留存策略；前台 **ReviewModal** 当前仍为模拟提交，若上线真实 UGC 评论须接 API 并复用同一套文本策略 |
 
 ---
 
@@ -148,7 +158,7 @@
 | [09-上线发布验收清单.md](./手册-A-部署安全-发布与运维.md) | 发布走查与 §4 勾选 |
 | [10-需求-商业化与订单.md](./手册-D-需求-商业化-AI-SEO-爬虫.md) | PROD-MONET 决策与后续迭代口径 |
 | [11-控制面演进需求-CP-BACKLOG.md](./手册-C-开放事项与演进对照.md) | BACKLOG-CP 现状、缺口与 **CP-*** 验收说明 |
-| [12-需求-AI-SEO与流量分析助手.md](./手册-D-需求-商业化-AI-SEO-爬虫.md) | **PROD-AI-SEO**：AI SEO/流量分析助手产品需求与接口草案 |
+| [手册-D（PROD-AI-SEO）](./手册-D-需求-商业化-AI-SEO-爬虫.md) | AI SEO/流量分析：**MVP + §11 已落地**；§5「研发草案」为历史规格标题；差距与 PRD 对照见 [**项目-PRD-ORD-与实现差距及优化清单.md**](./项目-PRD-ORD-与实现差距及优化清单.md) |
 | [21-SEC-OPS-TC-ENG-P-AI策略与Backlog对照.md](./手册-C-开放事项与演进对照.md) | SEC/OPS/TC/ENG-PG 辅助、**P-AI** 策略、**CP-*** 立项门槛 |
 
 
@@ -225,7 +235,7 @@
 | 维度 | 说明 |
 |------|------|
 | **目标** | 管理端**一键分析**：服务端组装**可配置提示词**与 **SEO / 流量数据快照**，调用**可配置大模型 API**，返回**纯文本建议**；保留**分析记录列表**与**详情**（含提示词与模型快照，不含密钥）。 |
-| **已实现** | **MVP**：表 **`ai_insight_*`**、**`/api/admin/ai-insights/*`**、**`ai_insight_service`**（OpenAI 兼容 **chat/completions**）、管理端 **`/admin/ai-seo-insights`** 与 **`/runs/[id]`**、侧栏 **`migrate` 幂等补菜单**、环境变量 **`AI_INSIGHT_LLM_API_KEY`** 优先。**§11**：**`page_seo` / `home_seo` / `seo_robots`** 任务 **apply** 写库；**`code_pr_hint`** 仅 PR/CI；表 **`ai_insight_seo_apply_audit`** + **rollback** API。 |
+| **已实现** | **MVP**：表 **`ai_insight_*`**、**`/api/admin/ai-insights/*`**、**`app.growth.ai_insight_service`**（OpenAI 兼容 **chat/completions**）、管理端 **`/admin/ai-seo-insights`** 与 **`/runs/[id]`**、侧栏 **`migrate` 幂等补菜单**、环境变量 **`AI_INSIGHT_LLM_API_KEY`** 优先。**§11**：**`page_seo` / `home_seo` / `seo_robots`** 任务 **apply** 写库；**`code_pr_hint`** 仅 PR/CI；表 **`ai_insight_seo_apply_audit`** + **rollback** API。 |
 | **缺口** | 异步任务队列、多供应商适配器、费用估算展示、更细保留策略等（见 **12** §8～9）；二次密码、多版本配置历史表、按工具 JSON-LD 逐条覆盖等仍为产品/工单项。 |
 | **建议状态** | **MVP + §11 配置面写库与审计回滚已落地**；队列与商业化级审计另开工单。需求与验收见 [**12-需求-AI-SEO与流量分析助手.md**](./手册-D-需求-商业化-AI-SEO-爬虫.md)（**PROD-AI-SEO**）。 |
 

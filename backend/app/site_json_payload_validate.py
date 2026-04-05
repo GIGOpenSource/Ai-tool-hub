@@ -85,6 +85,25 @@ def validate_seo_robots_site_json(payload: dict[str, Any]) -> None:  # robots.tx
                 raise HTTPException(status_code=400, detail=f"site_json_schema:seo_robots.disallow_paths[{i}]")  # 下标
 
 
+def validate_recommend_algo_v1_site_json(payload: dict[str, Any]) -> None:  # 列表推荐 1.0 权重与开关
+    if "enabled" in payload and not isinstance(payload["enabled"], bool):  # 须布尔
+        raise HTTPException(status_code=400, detail="site_json_schema:recommend_algo_v1.enabled_bool")  # 类型错
+    wd = payload.get("window_days")  # 统计窗天数
+    if wd is not None and (not isinstance(wd, int) or isinstance(wd, bool) or wd < 1 or wd > 730):  # 合理范围
+        raise HTTPException(status_code=400, detail="site_json_schema:recommend_algo_v1.window_days_int")  # 非法
+    for name in (  # 嵌套须为对象
+        "layer_weights",
+        "traffic_inner",
+        "conversion_inner",
+        "commercial_inner",
+        "decay",
+        "complexity_coef",
+    ):
+        blk = payload.get(name)  # 取块
+        if blk is not None and (not isinstance(blk, dict) or isinstance(blk, list)):  # 非对象
+            raise HTTPException(status_code=400, detail=f"site_json_schema:recommend_algo_v1.{name}_object")  # 点名
+
+
 def validate_ai_insight_competitor_benchmarks(payload: dict[str, Any]) -> None:  # AI SEO 竞品块（P-AI-03）
     b = payload.get("benchmarks")  # 须为数组或省略
     if b is not None:  # 有则校验
@@ -117,3 +136,5 @@ def validate_site_json_for_key(key: str, payload: dict[str, Any]) -> None:  # �
         validate_home_seo_site_json(payload)  # brand_title / keywords / brand_icon_emoji
     elif key == "ai_insight_competitor_benchmarks":  # 竞品对标 JSON
         validate_ai_insight_competitor_benchmarks(payload)  # benchmarks / last_updated / notes
+    elif key == "recommend_algo_v1":  # 工具列表推荐算法 1.0
+        validate_recommend_algo_v1_site_json(payload)  # 开关、window_days、嵌套权重对象

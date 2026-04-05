@@ -16,9 +16,11 @@ if [[ "$c0" != "200" ]]; then
   exit 1
 fi
 
-c1=$(code -X POST "${BASE_URL}/api/submissions/tool" -H "Content-Type: application/json" -d "{}")
+# 须为合法 SubmitToolBody，否则 FastAPI 先于鉴权返回 422；未登录仍应 401（与手册-A §2.3 一致）
+SMOKE_SUBMIT_JSON='{"name":"smoke-check","website":"https://example.com","description":"smoke","category_slug":"copywriting"}'
+c1=$(code -X POST "${BASE_URL}/api/submissions/tool" -H "Content-Type: application/json" -d "$SMOKE_SUBMIT_JSON")
 if [[ "$c1" != "401" ]]; then
-  echo "FAIL: POST /api/submissions/tool 期望 401，实际 $c1"
+  echo "FAIL: POST /api/submissions/tool（合法体、未登录）期望 401，实际 $c1"
   exit 1
 fi
 
@@ -37,6 +39,19 @@ fi
 c4=$(code "${BASE_URL}/api/seo/robots.txt")
 if [[ "$c4" != "200" ]]; then
   echo "FAIL: GET /api/seo/robots.txt 期望 200，实际 $c4"
+  exit 1
+fi
+
+# 分类列表 + 搜索子串（与前台 /category/*、/s/* 同源 API；种子含 copywriting）
+c5=$(code "${BASE_URL}/api/tools?category_slug=copywriting")
+if [[ "$c5" != "200" ]]; then
+  echo "FAIL: GET /api/tools?category_slug=copywriting 期望 200，实际 $c5"
+  exit 1
+fi
+
+c6=$(code "${BASE_URL}/api/tools?q=a")
+if [[ "$c6" != "200" ]]; then
+  echo "FAIL: GET /api/tools?q=a 期望 200，实际 $c6"
   exit 1
 fi
 

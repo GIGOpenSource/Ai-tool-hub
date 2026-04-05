@@ -7,7 +7,7 @@ from datetime import datetime, timezone  # 审批/应用时间戳
 from typing import Any  # JSON 形态
 
 from app.page_catalog import normalize_page_path  # 与 Page SEO 页一致的路径键
-from app.routers.admin_page_seo import (  # 复用清洗与归一（与 PUT /page-seo 同源）
+from app.routers.growth.admin_page_seo import (  # 复用清洗与归一（与 PUT /page-seo 同源）
     _clean_string_map,  # 仅允许字段、字符串 strip
     _load_page_seo_payload,  # 读当前 page_seo 全表
     _normalize_entries_payload,  # 全表 path 再归一

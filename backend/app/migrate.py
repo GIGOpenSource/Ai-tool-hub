@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from app.ai_insight_prompt_defaults import (  # AI SEO 预设提示词（含每日报告 Checklist）
+from app.growth.ai_insight_prompt_defaults import (  # AI SEO 预设提示词（含每日报告 Checklist）
     DEFAULT_AI_INSIGHT_CONFIG_NAME,  # 默认配置显示名
     DEFAULT_AI_INSIGHT_SYSTEM_PROMPT,  # 系统消息全文
     DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE,  # 用户模板全文
@@ -359,6 +359,10 @@ def apply_migrations(conn: MigrationConnection) -> None:
         conn.execute("ALTER TABLE tool ADD COLUMN reject_reason_code TEXT")
     if "featured" not in c:
         conn.execute("ALTER TABLE tool ADD COLUMN featured INTEGER NOT NULL DEFAULT 0")
+    if "recommend_score" not in c:  # 列表推荐 1.0 排序分（由定时任务/脚本重算）
+        conn.execute("ALTER TABLE tool ADD COLUMN recommend_score REAL NOT NULL DEFAULT 0")
+    if "complexity_tier" not in c:  # simple | medium | high → 流量层质量修正系数
+        conn.execute("ALTER TABLE tool ADD COLUMN complexity_tier TEXT NOT NULL DEFAULT 'medium'")
 
     c = _cols(conn, "review")
     if "reviewer_user_id" not in c:
@@ -409,6 +413,19 @@ def apply_migrations(conn: MigrationConnection) -> None:
                     ensure_ascii=False,
                 ),
             ),
+        )
+
+    # 工具列表推荐 1.0：默认配置写入 site_json（关闭可将 enabled 改为 false）
+    if not conn.execute(
+        "SELECT 1 FROM site_json WHERE content_key = 'recommend_algo_v1' LIMIT 1"
+    ).fetchone():
+        from app.growth.recommend_service import default_recommend_config  # 与计算逻辑同源默认
+
+        _rcfg = default_recommend_config()  # 字典副本
+        _rcfg["enabled"] = True  # 新库默认开启；旧库升级插入此行后即按 recommend_score 排序
+        conn.execute(
+            "INSERT INTO site_json (content_key, payload_json) VALUES ('recommend_algo_v1', ?)",
+            (json.dumps(_rcfg, ensure_ascii=False),),
         )
 
     # sitemap 静态 URL、admin_settings（含前台主导航）：旧库无行时补默认，与种子对齐
@@ -580,6 +597,7 @@ def apply_migrations(conn: MigrationConnection) -> None:
 
     _ensure_ai_insight_seo_task_table(conn)  # AI 报告衍生 SEO 任务表（老库补建）
     _ensure_ai_insight_seo_apply_audit_table(conn)  # SEO 应用审计与回滚（老库补建）
+    _ensure_ai_insight_scheduler_state_table(conn)  # 日更 AI SEO 调度锚日（防同日重复）
     _ensure_site_json_content_revision_table(conn)  # v2.x：site_json 多版本历史
     _ensure_outbound_click_table(conn)  # 出站官网点击表（老库补建，与 schema 一致）
     _ensure_crawler_columns(conn)  # PROD-CRAWLER：调度与统计列（老库 ALTER）
@@ -626,6 +644,32 @@ def _ensure_ai_insight_seo_task_table(conn: MigrationConnection) -> None:  # 老
         )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_ai_seo_task_run ON ai_insight_seo_task(source_run_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_ai_seo_task_status ON ai_insight_seo_task(status)")
+
+
+def _ensure_ai_insight_scheduler_state_table(conn: MigrationConnection) -> None:  # 单行表：last_daily_run_date
+    if not _table_exists(conn, "ai_insight_scheduler_state"):  # 尚无表
+        if is_pg_adapter(conn):  # PostgreSQL
+            conn.execute(  # 建表
+                """CREATE TABLE IF NOT EXISTS ai_insight_scheduler_state (
+                    id INTEGER PRIMARY KEY,
+                    last_daily_run_date TEXT NOT NULL DEFAULT '',
+                    CONSTRAINT ai_insight_scheduler_singleton CHECK (id = 1)
+                )"""
+            )
+        else:  # SQLite
+            conn.execute(  # 建表
+                """CREATE TABLE IF NOT EXISTS ai_insight_scheduler_state (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    last_daily_run_date TEXT NOT NULL DEFAULT ''
+                )"""
+            )
+    hit = conn.execute(  # 锚行是否存在
+        "SELECT 1 FROM ai_insight_scheduler_state WHERE id = 1",  # 固定主键
+    ).fetchone()  # 一行或空
+    if not hit:  # 表空或缺行
+        conn.execute(  # 补锚行
+            "INSERT INTO ai_insight_scheduler_state (id, last_daily_run_date) VALUES (1, '')",  # 初始空日期
+        )
 
 
 def _ensure_ai_insight_seo_apply_audit_table(conn: MigrationConnection) -> None:  # 老库无表时补 SEO 应用审计

@@ -15,7 +15,7 @@
 
 ## 1. 评估方法说明
 
-1. **代码路径**：`backend/app/ai_insight_service.py`（`build_snapshots`）、`backend/app/routers/admin_ai_insights.py`、`backend/app/analytics_service.py`、`backend/app/routers/track.py`、前台 `ToolDetailPage` 外链行为。  
+1. **代码路径**：`backend/app/growth/ai_insight_service.py`（`build_snapshots`）、`backend/app/routers/growth/admin_ai_insights.py`、`backend/app/analytics_service.py`、`backend/app/routers/track.py`、前台 `ToolDetailPage` 外链行为。  
 2. **管理端**：`/admin/ai-seo-insights` 与 `/api/admin/ai-insights/*` 存在且与 [12-需求-AI-SEO与流量分析助手.md](./手册-D-需求-商业化-AI-SEO-爬虫.md) 描述一致（MVP 范围）。  
 3. **未执行**：带生产库或完整种子的 `POST /api/admin/ai-insights/run` 实机调用、token 用量与供应商账单核对。
 
@@ -160,7 +160,7 @@
 | 账号与个性化 | **中** | JWT + 本地存储；收藏/活动/设置已落地。 |
 | SEO 控制面 | **高** | 页面 SEO、`sitemap.xml` / `robots.txt`、首页 SEO、JSON-LD 专页等已文档化（见 [08](./08-管理后台与SEO控制面.md)）。 |
 | 商业化（C 端） | **中** | 订单可读、弱曝光有；**无自助支付与下单闭环**（见 §3）。 |
-| 内容与增长工具 | **中** | 爬虫 MVP、AI 解读为**辅助**，不自动改站（见 §4）。 |
+| 内容与增长工具 | **中** | **爬虫 MVP**：JSON 导入默认 **`tool.pending`**，经人工审核上架，非「AI 直接改站」。**AI SEO（§11）**：分析 run 本身不落配置；**生成任务清单 → 管理员批准 → apply 自动合并写入**白名单 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**），属**人工确认后的程序化 SEO 优化**；源码向建议仍须 **PR/CI**。见 [手册-D §11](./手册-D-需求-商业化-AI-SEO-爬虫.md)。 |
 
 ### 1.3 体验与产品风险
 
@@ -183,7 +183,7 @@
 | **可控 SEO 与结构化数据** | 页面 SEO、站点 JSON、sitemap/robots、Tool JSON-LD 专页 | 利于长尾与品牌站运营，依赖运营配置质量。 |
 | **对比落地页** | 后台可视化 + JSON | 可做「X vs Y」流量入口。 |
 | **合规弱曝光商业化** | `promotion_active` + 订单表 | 相对「强插首页」更易合规落地，但变现天花板较低。 |
-| **运营效率** | 爬虫导入待审、AI SEO 建议（只读） | 降本增效，需人工审核与模型成本控制。 |
+| **运营效率** | 爬虫导入待审；AI SEO **报告 + 结构化任务**，**批准后 apply 自动写**配置面 SEO（§11） | 降本增效；模型成本与审批纪律需运营约定。 |
 
 ### 2.3 市场侧主要风险
 
@@ -290,12 +290,12 @@
 | 阶段 | 时间参考 | 内容摘要 |
 |------|----------|----------|
 | 仓库初始化 | 2026-04-04 | 提交 **AI 导航** 单体仓库：`admin`（Next.js）、`backend`（FastAPI）、`frontend`（Vite + React）及配套 `docs/`、`sql/`、种子数据。 |
-| 安全与发布工程化 | 文档 §0.1～0.2 | **`env_guard`** 生产 **`JWT_SECRET`** 强校验；**`ensure_dev_accounts`** 生产不覆盖已存在用户口令；**`publish_smoke.sh`** 发布前接口抽样；**`.github/workflows/ci.yml`** 三端构建 + smoke（见 [03](./手册-C-开放事项与演进对照.md)）。 |
+| 安全与发布工程化 | 文档 §0.1～0.2 | **`env_guard`** 生产 **`JWT_SECRET`** 强校验；**`ensure_dev_accounts`** 生产不覆盖已存在用户口令；**`publish_smoke.sh`** 发布前接口抽样；**`.github/workflows/ci.yml`**：docs lint、**`backend-py-compile`**（含 **`ai_insight_snapshots_acceptance`**、**`crawler_acceptance`**、**`verify_release_env`**）、前后台 build、**api-smoke**（见 [03](./手册-C-开放事项与演进对照.md)）。 |
 | 控制面与 SEO | 持续 | 管理端：`dashboard`、`analytics`、工具审核/编辑、用户与评论、`page_seo`、`home_seo`、`site_json` 分块、对比页可视化与 JSON、`tool-json-ld`、翻译与搜索联想词、商业化订单列表等（见 [08](./08-管理后台与SEO控制面.md)、[07](./手册-B-架构程序与API索引.md)）。 |
 | 用户与商业化（C 端 API） | 持续 | 收藏、个人资料与设置、活动流、推广订单；详情/对比接口 **`promotion_active`** 等（见 [03](./手册-C-开放事项与演进对照.md) §4.1、[10](./手册-D-需求-商业化-AI-SEO-爬虫.md)）。 |
-| AI SEO 助手（MVP） | 2026-04 文档 | 后端 **`ai_insight_service`**、**`/api/admin/ai-insights/*`**；管理端 **`/admin/ai-seo-insights`** 及运行详情页；快照含 SEO、流量、`site_json` 爬虫相关摘要等（见 [12](./手册-D-需求-商业化-AI-SEO-爬虫.md)、[14](./手册-E-评估与变更日志.md)）。 |
+| AI SEO 助手（MVP） | 2026-04 文档 | 后端 **`backend/app/growth/ai_insight_service.py`**、路由 **`routers/growth/admin_ai_insights.py`**（**`/api/admin/ai-insights/*`**）；管理端 **`/admin/ai-seo-insights`** 及运行详情页；快照含 SEO、流量、`site_json` 爬虫相关摘要等（见 [手册-D](./手册-D-需求-商业化-AI-SEO-爬虫.md)、§11 任务写库）。 |
 | AI SEO §11 任务写库 | 2026-04-05 | **`ai_insight_seo_task`** 多 **`kind`**（**`page_seo` / `home_seo` / `seo_robots`** + **`code_pr_hint`**）、**`ai_insight_seo_apply_audit`**、管理端审计表与回滚；文档 **06 / 08 / 11 / 12 / 18** 已同步。 |
-| 内容爬虫与调度 | 2026-04 文档 | **`crawler_*`** 表、**`admin_crawler`** 路由、**`crawler_scheduler_loop`** 进程内巡检；样例 feed 与验收脚本方向见 [13](./手册-D-需求-商业化-AI-SEO-爬虫.md)、`backend/scripts/crawler_acceptance.py`。 |
+| 内容爬虫与调度 | 2026-04 文档 | **`crawler_*`** 表、**`routers/growth/admin_crawler.py`**、**`app.growth.crawler_service`** / **`crawler_scheduler_loop`** 进程内巡检；样例 feed 与 **`backend/scripts/crawler_acceptance.py`**（**CI** 已纳入）见 [手册-D 爬虫章](./手册-D-需求-商业化-AI-SEO-爬虫.md)。 |
 | 可观测与版本 | 2026-04 | **`health_release`**（**`GET /api/health`** 与发布对账）、**`release_meta.api_version()`** 与 OpenAPI 版本对齐；**`APP_VERSION`** 可覆盖。 |
 | 前端工程与体验 | 2026-04 | **`ErrorBoundary`**、**`FullPageLoadError`**、**`webVitals`**、**`LanguageContext`** 等；**BACKLOG-A**：精简未使用的 UI 组件与依赖（见 [05](./手册-A-部署安全-发布与运维.md)）。 |
 | 文档体系 | 2026-04 | 部署（[01](./手册-A-部署安全-发布与运维.md)、[16](./手册-A-部署安全-发布与运维.md)）、API（[06](./手册-B-架构程序与API索引.md)、[18](./手册-B-架构程序与API索引.md)）、需求 10～15 与程序说明 17 等；根目录部分 PDF/MD **迁移至 `docs/`**（以当前树为准）。 |
@@ -308,9 +308,9 @@
 
 ### 3.1 后端（`backend/app/`）
 
-- **入口**：`create_app()` 注册 **`/api`** 下全部路由；**`lifespan`** 顺序：环境守卫 → 建库与迁移 → 空库种子 → 演示账号与示例订单 → **爬虫调度协程**；停机时 cancel 并 await 收尾（见 [17](./手册-B-架构程序与API索引.md) §4.2）。
+- **入口**：`create_app()` 注册 **`/api`** 下全部路由（核心 + **`routers/growth`**）；**`lifespan`** 顺序：环境守卫 → 建库与迁移 → 空库种子 → 演示账号与示例订单 → 并行挂 **爬虫**、**AI SEO 日更**、**推荐分** 三调度协程（后二者默认多由环境变量关闭）；停机时 **cancel** 并 **await** 收尾（见 [手册-B §4.2](./手册-B-架构程序与API索引.md)）。
 - **数据库**：默认 SQLite；可选 **`DATABASE_URL`** + **`db_util`** / **`schema.pg.sql`**（**ENG-PG** 须单独验收）。
-- **横切**：CORS（**`ALLOWED_ORIGINS`** 或私网正则）、JWT、管理员与用户依赖、SEO 对外 **`sitemap.xml` / `robots.txt`**。
+- **横切**：CORS（**`ALLOWED_ORIGINS`** 或私网正则）、JWT、管理员与用户依赖；公开 SEO 由 **`routers/growth/seo_public.py`** 提供 **`sitemap.xml` / `robots.txt`**。
 
 ### 3.2 管理端（`admin/`）
 
@@ -336,6 +336,7 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-04-04 | 首版：基于单提交历史 + 全仓文档与目录归纳。 |
+| 2026-04-05 | 对照 **`app/growth`**、**`routers/growth`**、三调度 **lifespan**、**CI** 步骤与 **`.env.example`** 更新 §2 里程碑、§3.1 后端要点与 Bug 表路径。 |
 
 
 ---
@@ -357,7 +358,7 @@
 | **启动钩子过时** | `on_event` 等旧生命周期不利于异步收尾 | 使用 **`lifespan`**；停机 **cancel** 爬虫调度并 **`await`** 收尾 | [17](./手册-B-架构程序与API索引.md) §4.2 |
 | **前端体积与死代码** | 未引用 UI 组件与依赖膨胀 | **BACKLOG-A**：删除零入边组件、精简 **npm** 依赖；**`npm run build`** 验收 | [05](./手册-A-部署安全-发布与运维.md) |
 | **`site_json` 迁移覆盖** | 种子升级误覆盖运营已改 JSON | **`migrate`** 对缺键**合并**、**不覆盖**已有键（**`dashboard` / `home_seo`** 等运维约定） | [05](./手册-A-部署安全-发布与运维.md) |
-| **P-AI-01** | **`crawler_snapshot`** 与内容爬虫语义混淆 | 新增推荐占位符 **`{{seo_indexing_snapshot}}`**（sitemap/robots）；**`{{crawler_snapshot}}`** 仍为**同内容别名**；默认种子与后台示例模板已改用新名 | `ai_insight_service.py`、`ai_insight_prompt_defaults.py` |
+| **P-AI-01** | **`crawler_snapshot`** 与内容爬虫语义混淆 | 新增推荐占位符 **`{{seo_indexing_snapshot}}`**（sitemap/robots）；**`{{crawler_snapshot}}`** 仍为**同内容别名**；默认种子与后台示例模板已改用新名 | `backend/app/growth/ai_insight_service.py`、`backend/app/growth/ai_insight_prompt_defaults.py` |
 | **P-AI-02** | 出站官网点击无独立埋点 | **`POST /api/track/outbound`** + 表 **`outbound_click_log`**；详情页点击上报；**`traffic_snapshot`** 内 **`outbound_official_clicks_7d`**（键名历史兼容，同窗 **`traffic_window_days`**）注入 AI 分析 | `track.py`、`analytics_service.py`、`ToolDetailPage.tsx` |
 | **P-DOC-01** | **`build_snapshots`** 无自动化验收 | 脚本 **`backend/scripts/ai_insight_snapshots_acceptance.py`**（**`top_pages_7d`** 与 **`page_analytics_rows`** 对账、**P-AI-06** Redis mock）；CI **`backend-py-compile`** 中执行 | `.github/workflows/ci.yml` |
 | **P-DOC-02** | 需求 12 §7 与发布脱节 | [12](./手册-D-需求-商业化-AI-SEO-爬虫.md) §7 增补**发布管线**说明（走查 + 验收脚本） | 同上 |
@@ -408,8 +409,9 @@
 | 2026-04-05 | P-AI-05/07 | `POST /api/admin/ai-insights/run` 支持 **`defer_llm`**（202 + 后台任务）；管理端轮询与详情页 **pending** 自动刷新；开放决策折叠文案 |
 | 2026-04-05 | **文档与 §11 对齐** | [12](./手册-D-需求-商业化-AI-SEO-爬虫.md) **§11**、[06](./手册-B-架构程序与API索引.md)、[08](./08-管理后台与SEO控制面.md)、[11](./手册-C-开放事项与演进对照.md)、[03](./手册-C-开放事项与演进对照.md)、[14](./手册-E-评估与变更日志.md)、[18](./手册-B-架构程序与API索引.md) 与已实现的多键 SEO 任务、审计回滚、`code_pr_hint` 行为一致 |
 | 2026-04-05 | **21 + verify_release_env** | 新增 [**21**](./手册-C-开放事项与演进对照.md)；**P-AI**/**CP** 立项口径；同步 **03/04/09/11/14**、**`env_guard.production_jwt_secret_ok`**、**CI** |
-| 2026-04-05 | **P-AI-07 出境** | 产品确认：**允许** SEO 摘要与聚合流量发往含**境外**的管理员配置 LLM；**`ai_insight_service`** 快照值、**`ai_insight_snapshots_acceptance`**、**12 §9**、管理端 **`open_product_decisions`** 折叠文案、**03/21 §2** 表同步 |
+| 2026-04-05 | **P-AI-07 出境** | 产品确认：**允许** SEO 摘要与聚合流量发往含**境外**的管理员配置 LLM；**`app.growth.ai_insight_service`** 快照值、**`ai_insight_snapshots_acceptance`**、**12 §9**、管理端 **`open_product_decisions`** 折叠文案、**03/21 §2** 表同步 |
 | 2026-04-05 | **§7 / P-AI-06 / P-DOC-01** | **`analytics_compare_range`**、摘要 **`traffic_analytics_compare_range`**；验收脚本对账 + **`_assert_redis_rate_limit_mock`**；**§7** 改为已闭环表述 |
+| 2026-04-05 | **AI SEO 闭环口径** | 与 **§11** 一致：**分析 → 任务清单 → 人工批准 → apply 自动写 `site_json`**；修正 §1.2、§7.3、§1.2.2/§08 等「不自动改站」易误解表述，区分 **run 不写库** 与 **批准后程序化优化** |
 | （待填） | （关闭某条时） | 在表格中标注 **已关闭** 与 PR/提交引用 |
 
 ---
@@ -420,6 +422,7 @@
 |------|------|
 | 2026-04-04 | 首版：与 03/04/05/14 对齐，区分「已落实」与「仍开放」。 |
 | 2026-04-05 | **P-AI-07**：出境 LLM 产品确认写入快照与 **12 §9**；§6.1、§2.2、§3 变更日志同步。 |
+| 2026-04-05 | §1.2、§2.2、§4.1：对齐 **AI SEO §11**——人工确认后 **apply** 自动优化白名单 SEO；手册 **B §7.3**、**D §1.2.2**、**08** 控制面矩阵同步。 |
 
 
 ---

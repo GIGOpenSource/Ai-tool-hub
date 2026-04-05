@@ -35,6 +35,8 @@ jobs:
         run: find app -name '*.py' ! -name '._*' -print0 | xargs -0 python -m py_compile
       - name: AI SEO build_snapshots 结构验收（P-DOC-01）
         run: PYTHONPATH=. python scripts/ai_insight_snapshots_acceptance.py
+      - name: 内容爬虫验收（导入 dry-run / 统计 / 定时 tick）
+        run: PYTHONPATH=. python scripts/crawler_acceptance.py
       - name: 发布环境自检脚本（默认非 production，SEC/DB 烟测）
         run: PYTHONPATH=. python scripts/verify_release_env.py
 

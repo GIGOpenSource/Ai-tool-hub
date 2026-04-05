@@ -28,5 +28,17 @@ export default defineConfig(({ mode }) => {
       },
     },
     assetsInclude: ['**/*.svg', '**/*.csv'],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/lucide-react/')) return 'vendor-lucide' // 与全量 DynamicLucide 分包，减轻主 chunk
+            if (id.includes('node_modules/recharts/')) return 'vendor-recharts' // 仪表盘图表单独 chunk
+            if (id.includes('node_modules/motion/')) return 'vendor-motion' // 动画库单独 chunk
+            return undefined // 其余走默认拆分
+          },
+        },
+      },
+    },
   }
 })

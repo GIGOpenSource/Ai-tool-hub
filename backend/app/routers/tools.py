@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query  # Query：可选筛选参数
 from pydantic import BaseModel
 
 from app.db import get_db
 from app.i18n_util import all_messages_for_locale, category_label
 from app.promotion_util import tool_has_active_promotion  # 弱曝光：paid 且在约
+from app.growth.recommend_service import recommend_sort_enabled  # 是否按 recommend_score 排序
 
 router = APIRouter(tags=["tools"])
 
@@ -27,23 +28,54 @@ class ToolListItem(BaseModel):
     category_slug: str
     review_count: int
     popularity: int
+    recommend_score: float  # 推荐 1.0 模型分（未开启算法时可为 0）
     created_at: str
 
 
+def _safe_like_fragment(raw: str) -> str:  # 去掉 LIKE 通配符，防注入式匹配
+    s = (raw or "").strip()[:120]  # 上限与 Query 一致
+    return s.replace("%", "").replace("_", "")  # 禁用 % _ 特殊语义
+
+
 @router.get("/tools", response_model=list[ToolListItem])
-def list_tools(locale: str = "en") -> list[ToolListItem]:
-    """按热度排序；分类名为 i18n 解析后的展示文案。"""
+def list_tools(
+    locale: str = "en",  # i18n 分类名
+    category_slug: str | None = Query(None, max_length=120, description="仅返回该分类 slug 下的工具"),  # PRD 静态分类目录
+    q: str | None = Query(None, max_length=120, description="按名称/描述子串筛选（不区分大小写）"),  # PRD 搜索聚合
+) -> list[ToolListItem]:
+    """按热度排序；分类名为 i18n 解析后的展示文案；可选按分类 slug、关键词收窄。"""
+    where_extra = ""  # 动态 AND 片段
+    params: list[object] = []  # 绑定参数（仅 category / LIKE）
+    if category_slug and category_slug.strip():  # 显式分类
+        where_extra += " AND c.slug = ?"  # 精确匹配分类表 slug
+        params.append(category_slug.strip())  # 绑定
+    if q and q.strip():  # 关键词
+        frag = _safe_like_fragment(q)  # 清洗
+        if frag:  # 非空才加条件
+            where_extra += " AND (LOWER(t.name) LIKE ? OR LOWER(t.description) LIKE ?)"  # SQLite 子串
+            like = f"%{frag.lower()}%"  # 参数化模式
+            params.extend([like, like])  # 两个占位符
     with get_db() as conn:
-        rows = conn.execute(
-            f"""SELECT t.slug, t.name, t.description, t.icon_emoji, t.rating, t.pricing_type,
-                      t.review_count, t.popularity, t.created_at, c.slug AS category_slug, c.i18n_key
-               FROM tool t
-               JOIN category c ON t.category_id = c.id
-               WHERE {_ACTIVE}
-               ORDER BY t.popularity DESC"""
-        ).fetchall()
+        use_rec = recommend_sort_enabled(conn)  # site_json.recommend_algo_v1.enabled
+        order_sql = (  # 推荐开：分主序、热度兜底；关：仅热度
+            "t.recommend_score DESC, t.popularity DESC, t.created_at DESC"
+            if use_rec
+            else "t.popularity DESC, t.created_at DESC"
+        )
+        sql = f"""SELECT t.slug, t.name, t.description, t.icon_emoji, t.rating, t.pricing_type,
+                     t.review_count, t.popularity, t.recommend_score, t.created_at, c.slug AS category_slug, c.i18n_key
+              FROM tool t
+              JOIN category c ON t.category_id = c.id
+              WHERE {_ACTIVE}{where_extra}
+              ORDER BY {order_sql}"""  # 动态排序
+        rows = conn.execute(sql, tuple(params)).fetchall()  # 执行
         out: list[ToolListItem] = []
         for r in rows:
+            rs = r["recommend_score"]  # 可能旧库无列——迁移后必有
+            try:
+                rs_f = float(rs) if rs is not None else 0.0  # 安全 float
+            except (TypeError, ValueError):  # 异常数据
+                rs_f = 0.0  # 归零
             out.append(
                 ToolListItem(
                     id=r["slug"],
@@ -56,6 +88,7 @@ def list_tools(locale: str = "en") -> list[ToolListItem]:
                     category_slug=r["category_slug"],
                     review_count=r["review_count"],
                     popularity=r["popularity"],
+                    recommend_score=rs_f,  # 前台「热门」排序与之一致
                     created_at=r["created_at"] or "",
                 )
             )

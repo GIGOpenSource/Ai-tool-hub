@@ -2,7 +2,7 @@
  * canonical、OG、页面 `<link rel="canonical">` 等用的**前台**公网站点根（无尾斜杠）。
  *
  * - **前台 SPA（Vite）**：生产构建在 `frontend/.env` / CI 注入 **`VITE_PUBLIC_SITE_URL`**（见 `frontend/.env.example`）。
- * - **后端 sitemap.xml / robots.txt**：使用环境变量 **`PUBLIC_SITE_URL`**（`backend/app/routers/seo_public.py`）。
+ * - **后端 sitemap.xml / robots.txt**：使用环境变量 **`PUBLIC_SITE_URL`**（`backend/app/routers/growth/seo_public.py`）。
  *   上线两变量应指向**同一**生产域，避免 canonical 与站点地图 URL 不一致。
  *
  * 未配置 `VITE_PUBLIC_SITE_URL` 时：浏览器内退回 `window.location.origin`；无 `window` 时返回空串。

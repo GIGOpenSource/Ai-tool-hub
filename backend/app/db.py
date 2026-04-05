@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os  # 读 DATABASE_URL（与 is_postgresql 一致）
+import re  # 校验动态表名，防 SQL 标识符注入
 import sqlite3  # 本地默认后端
 from contextlib import contextmanager  # get_db 上下文管理器
 from typing import Iterator  # get_db 产出类型
@@ -15,6 +16,8 @@ from app.db_util import (  # PG 适配与工具函数
 )
 from app.migrate import apply_migrations  # 启动与 PG 初始化后增量迁移
 from app.paths import DB_PATH, SQL_DIR  # SQLite 路径与 sql/ 目录
+
+_SAFE_SQL_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")  # 未加引号的合法表名（种子仅传 tool 等）
 
 
 def _schema_sqlite_text() -> str:
@@ -87,5 +90,7 @@ def get_db() -> Iterator[sqlite3.Connection | PgConnectionAdapter]:
 
 def table_nonempty(conn: sqlite3.Connection | PgConnectionAdapter, name: str) -> bool:
     """表内是否至少一行（种子逻辑用于跳过重复导入）；name 须为可信标识符。"""
+    if not _SAFE_SQL_IDENT.fullmatch(name):  # 非字母数字下划线起头的表名拒绝拼接
+        raise ValueError("unsafe_table_name")  # 仅应由 migrate/seed 传入字面量表名
     row = conn.execute(f"SELECT 1 FROM {name} LIMIT 1").fetchone()  # 任意一行即可
     return row is not None  # 有数据为 True

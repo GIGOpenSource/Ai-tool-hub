@@ -23,6 +23,7 @@ type ToolReviewDetail = {
   category_slug: string;
   moderation_status: string;
   reject_reason_code: string | null;
+  complexity_tier: string; // simple | medium | high — 推荐算法流量层系数
 };
 
 /** GET /api/categories 单项 */
@@ -62,6 +63,7 @@ export default function AdminToolEditPage() {
   const [pricingType, setPricingType] = useState(""); // 定价文案
   const [iconEmoji, setIconEmoji] = useState(""); // emoji
   const [categorySlug, setCategorySlug] = useState(""); // 分类 slug
+  const [complexityTier, setComplexityTier] = useState("medium"); // 推荐用复杂度
 
   useEffect(() => {
     if (!detail) return; // 无数据则跳过
@@ -73,6 +75,7 @@ export default function AdminToolEditPage() {
     setPricingType(detail.pricing_type); // 回填定价
     setIconEmoji(detail.icon_emoji ?? ""); // 回填图标
     setCategorySlug(detail.category_slug); // 回填分类
+    setComplexityTier(detail.complexity_tier || "medium"); // 回填复杂度
   }, [detail]); // detail 变更时同步
 
   const saveMut = useMutation({
@@ -86,6 +89,7 @@ export default function AdminToolEditPage() {
         pricing_type: pricingType,
         icon_emoji: iconEmoji,
         category_slug: categorySlug,
+        complexity_tier: complexityTier, // 推荐算法档位
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["admin", "tools"] }); // 刷新列表
@@ -185,6 +189,19 @@ export default function AdminToolEditPage() {
             value={iconEmoji}
             onChange={(e) => setIconEmoji(e.target.value)}
           />
+        </label>
+        <label className="block space-y-1">
+          <span className="text-xs text-gray-400">{t("tools.fieldComplexity")}</span>
+          <FieldHint text={t("fieldHelp.toolsEdit.complexity")} />
+          <select
+            className="w-full rounded-lg border border-admin-border/90 bg-admin-bg/90 px-3 py-2 text-sm text-white"
+            value={complexityTier}
+            onChange={(e) => setComplexityTier(e.target.value)}
+          >
+            <option value="simple">simple</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
         </label>
         <label className="block space-y-1">
           <span className="text-xs text-gray-400">{t("tools.fieldCategory")}</span>

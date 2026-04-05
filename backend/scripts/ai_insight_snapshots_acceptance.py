@@ -23,8 +23,8 @@ dbm.DB_PATH = _tmp_db  # db 模块全局
 
 from fastapi.testclient import TestClient  # 触发 lifespan 建表与种子
 
-from app.ai_insight_prompt_defaults import DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE  # 默认用户模板
-from app.ai_insight_service import build_snapshots, fill_user_template, validate_user_prompt_template  # 核心 API
+from app.growth.ai_insight_prompt_defaults import DEFAULT_AI_INSIGHT_USER_PROMPT_TEMPLATE  # 默认用户模板
+from app.growth.ai_insight_service import build_snapshots, fill_user_template, validate_user_prompt_template  # 核心 API
 from app.analytics_service import page_analytics_rows  # 与快照 top_pages 同源聚合（管理端 Analytics）
 from app.db import get_db  # 写 site_json 与 outbound 样例
 from app.main import app  # FastAPI 应用
@@ -157,7 +157,7 @@ def _run_assertions() -> None:  # 失败抛 AssertionError
 def _assert_redis_rate_limit_mock() -> None:  # P-AI-06：Redis 固定窗口路径（不调真实实例）
     from unittest.mock import MagicMock, patch  # 运行时打桩
 
-    import app.ai_insight_service as ais_mod  # 限流实现模块
+    import app.growth.ai_insight_service as ais_mod  # 限流实现模块
 
     mock_r = MagicMock()  # 伪造 redis 客户端
     seq = [0]  # 桶内计数闭包

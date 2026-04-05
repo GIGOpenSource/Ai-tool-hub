@@ -4,7 +4,7 @@ from __future__ import annotations
 import json  # ref 元数据序列化
 from typing import Any  # Row
 
-from app.ai_insight_seo_task_service import utc_now_iso  # 与 SEO 任务表时间格式一致
+from app.growth.ai_insight_seo_task_service import utc_now_iso  # 与 SEO 任务表时间格式一致
 from app.db_util import insert_returning_id  # 取新 revision id
 
 

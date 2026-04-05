@@ -23,7 +23,7 @@ dbm.DB_PATH = _tmp_db  # db 模块内全局 DB_PATH
 
 from fastapi.testclient import TestClient  # 同步调用 ASGI
 
-from app.crawler_scheduler import tick_scheduled_crawls  # 手动触发定时逻辑
+from app.growth.crawler_scheduler import tick_scheduled_crawls  # 手动触发定时逻辑
 from app.main import app  # 挂载 lifespan 的应用
 
 

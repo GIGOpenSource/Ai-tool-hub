@@ -4,6 +4,7 @@
  * 搜索筛选、价格与排序、收藏 Set 为客户端状态；canonical 使用 getPublicSiteOrigin。
  */
 import React, { useMemo, useState } from "react"; // React：满足 TS 对 JSX 的隐式引用；hooks 为具名导入
+import { useNavigate } from "react-router"; // 搜索进 /s/:keyword
 import { toast } from "sonner";
 import { Navigation } from "../components/Navigation";
 import { SEO } from "../components/SEO";
@@ -18,6 +19,7 @@ import { useResolvedPageSeo } from "../hooks/useResolvedPageSeo"; // 后台 page
 import { FullPageLoadError } from "../components/FullPageLoadError"; // 数据加载失败整页态
 
 export function HomePage() {
+  const navigate = useNavigate(); // 客户端路由
   const { t, language } = useLanguage();
   const { tools, categories, suggestions, homeSeo, uiToasts, error, retryLoad } = useHomeData(language);
   const seoMerged = useResolvedPageSeo("/", {
@@ -53,9 +55,12 @@ export function HomePage() {
       return true;
     });
     list = [...list].sort((a, b) => {
-      if (sortBy === "rating") return b.rating - a.rating;
-      if (sortBy === "newest") return (b.created_at || "").localeCompare(a.created_at || "");
-      return b.popularity - a.popularity;
+      if (sortBy === "rating") return b.rating - a.rating; // 按星
+      if (sortBy === "newest") return (b.created_at || "").localeCompare(a.created_at || ""); // 新到旧
+      const ar = a.recommend_score ?? 0; // 推荐分（与 API 热门序一致）
+      const br = b.recommend_score ?? 0; // 同上
+      if (br !== ar) return br - ar; // 主序
+      return b.popularity - a.popularity; // 兜底热度
     });
     return list;
   }, [tools, searchQuery, selectedSlug, priceFilter, sortBy]);
@@ -113,6 +118,7 @@ export function HomePage() {
         showSuggestions={showSuggestions}
         setShowSuggestions={setShowSuggestions}
         filteredSuggestions={filteredSuggestions}
+        onSearchNavigate={(q) => navigate(`/s/${encodeURIComponent(q)}`)}
       />
 
       <HomeFiltersBar

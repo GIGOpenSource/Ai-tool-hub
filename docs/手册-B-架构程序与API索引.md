@@ -8,7 +8,7 @@
 
 ## 1. 产品定位
 
-面向最终用户的 **AI 工具发现、分类浏览、详情与对比**，以及 **登录用户提交工具、收藏与个人页**；管理端提供 **工具审核、用户与评论治理、流量看板、商业化订单、首页搜索联想词与系统设置**等。
+面向最终用户的 **AI 工具发现、分类浏览、详情与对比**，以及 **登录用户提交工具、收藏与个人页**；管理端提供 **工具审核、用户与评论治理、流量看板、商业化订单、首页搜索联想词与系统设置**等。列表 **「热门」** 可与 **`site_json.recommend_algo_v1`** 联动按 **`recommend_score`** 排序（实现见 **`backend/app/growth/recommend_service.py`**，说明见 [需求-I](./需求-I-工具列表推荐排序算法-v1.md)）。
 
 ## 2. 技术架构（三端）
 
@@ -37,13 +37,15 @@ flowchart LR
 
 | 路径 | 职责 |
 |------|------|
-| `backend/app/main.py` | 应用工厂、CORS、路由挂载、**lifespan** 启动链（建库/种子/演示账号） |
+| `backend/app/main.py` | 应用工厂、CORS、路由挂载、**lifespan** 启动链（建库/种子/演示账号/三后台调度） |
 | `backend/app/db.py` | 连接 DB（SQLite 或 PG）、建表/迁移入口 |
 | `backend/app/db_util.py` | PG 适配与 SQL 方言辅助 |
 | `backend/app/security.py` | JWT 签发与密码哈希 |
 | `backend/app/deps_auth.py` | `get_current_admin` / `get_optional_user_id` |
 | `backend/app/analytics_service.py` | 管理端大盘与页面统计 SQL |
-| `backend/app/routers/*.py` | 各领域 HTTP 接口（见 API 清单） |
+| `backend/app/growth/` | 推荐分、爬虫、AI SEO 服务与进程内调度（与核心站点逻辑分区，见下文 **程序说明书 §3.1**） |
+| `backend/app/routers/` | 站点核心 HTTP 接口（**不含**子目录 `growth/`，后者见下一行） |
+| `backend/app/routers/growth/` | 公开 SEO、Page SEO、爬虫管理、AI 洞察路由 |
 | `frontend/src/app/App.tsx` | 根布局与路由出口 |
 | `frontend/src/app/routes.tsx` | 页面路由表 |
 | `frontend/src/app/contexts/*` | 语言、登录态 |
@@ -67,16 +69,21 @@ flowchart LR
 |------|------|------|
 | `ENVIRONMENT` | 后端 | 设为 **`production`** 时启用 **`JWT_SECRET` 强校验**，且演示账号逻辑不覆盖已有用户密码（见 `env_guard` / `ensure_accounts`） |
 | `JWT_SECRET` | 后端 | JWT 签名密钥 |
-| `AI_INSIGHT_LLM_API_KEY` | 后端 | （可选）管理端 **AI SEO 分析** 的全局 API Key，**优先于**库内 **`ai_insight_llm_provider.api_key`**（见 [12-需求-AI-SEO与流量分析助手.md](./手册-D-需求-商业化-AI-SEO-爬虫.md)） |
+| `AI_INSIGHT_LLM_API_KEY` | 后端 | （可选）管理端 **AI SEO 分析** 的全局 API Key，**优先于**库内 **`ai_insight_llm_provider.api_key`**（见 [手册-D PROD-AI-SEO](./手册-D-需求-商业化-AI-SEO-爬虫.md)） |
+| `AI_INSIGHT_DAILY_SCHEDULER_ENABLED` 等 | 后端 | AI SEO **进程内日更**与时刻/配置 id（默认关闭；详见 **`backend/.env.example`**） |
+| `CRAWLER_SCHEDULER_ENABLED` | 后端 | **`0` / false / off** 关闭进程内爬虫定时巡检（默认开启） |
+| `RECOMMEND_SCORE_INTERVAL_SEC` | 后端 | 列表 **推荐分**重算间隔秒；**≤0** 关闭（须 **`site_json.recommend_algo_v1.enabled=true`** 才写分，见 [需求-I](./需求-I-工具列表推荐排序算法-v1.md)） |
+| `TRACK_*`、`UGC_BLOCKED_SUBSTRINGS` 等 | 后端 | 埋点限流、投稿 UGC 黑名单等（详见 **`backend/.env.example`**） |
 | `DATABASE_URL` | 后端 | （可选）PostgreSQL 连接串；未设则用 SQLite |
 | `ALLOWED_ORIGINS` | 后端 | CORS 允许源，逗号分隔；见 `main.py` |
 | `PUBLIC_SITE_URL` | 后端 | 公网站点根（sitemap/robots 等），见 `01-部署指南.md` |
 | `VITE_API_BASE` | 前台构建 | 生产 API 根 URL |
 | `VITE_PUBLIC_SITE_URL` | 前台构建 | 浏览器端 canonical/OG 根 URL |
-| `DEV_API_PROXY` | 前台开发 | Vite 代理后端地址 |
+| `VITE_DEV_API_BASE` | 前台开发 | （可选）开发时**直连后端**、不经 Vite 代理的 API 根 |
+| `DEV_API_PROXY` | 前台开发 | Vite 将 `/api` 转发到的后端地址 |
 | `API_PROXY_TARGET` | 管理端构建/启动 | Next rewrites 目标 |
 
-各目录提供 `.env.example`。
+各目录提供 `.env.example`（**`backend/`** 最全；**`frontend/`**、**`admin/`** 各一份）。
 
 ## 6. 与《源代码文件索引》的关系
 
@@ -84,7 +91,7 @@ flowchart LR
 
 ## 7. 待办与验收
 
-跨文档的**未关闭事项汇总**（安全、部署、测试执行、SEO 缺口等）见 [**03-开放事项总表.md**](./手册-C-开放事项与演进对照.md)（**§0** 为自 `01`～`10` 整理的待处理清单速览，**§1** 为一览表，**§4.2 BACKLOG-CP** 对照 [**11-控制面演进需求-CP-BACKLOG.md**](./手册-C-开放事项与演进对照.md)）；**管理端 AI SEO/流量分析**（待立项）见 [**12-需求-AI-SEO与流量分析助手.md**](./手册-D-需求-商业化-AI-SEO-爬虫.md)。上线勾选模板见 [**09-上线发布验收清单.md**](./手册-A-部署安全-发布与运维.md)。
+跨文档的**未关闭事项汇总**（安全、部署、测试执行、SEO 缺口等）见 [**03-开放事项总表.md**](./手册-C-开放事项与演进对照.md)（**§0** 为自 `01`～`10` 整理的待处理清单速览，**§1** 为一览表，**§4.2 BACKLOG-CP** 对照 [**11-控制面演进需求-CP-BACKLOG.md**](./手册-C-开放事项与演进对照.md)）；**管理端 AI SEO/流量分析**（**MVP + §11 已落地**，演进项见 **手册-D §8**）见 [**手册-D — PROD-AI-SEO**](./手册-D-需求-商业化-AI-SEO-爬虫.md)。**PRD/流程图与代码差距总表**见 [**项目-PRD-ORD-与实现差距及优化清单.md**](./项目-PRD-ORD-与实现差距及优化清单.md)。上线勾选模板见 [**09-上线发布验收清单.md**](./手册-A-部署安全-发布与运维.md)。
 
 
 ---
@@ -141,13 +148,23 @@ flowchart TB
 | 模式 | SQLite `schema.sql`、PostgreSQL `schema.pg.sql` | `backend/sql/` |
 | 种子 | 空库导入业务与站点 JSON | `backend/data/seed/` |
 
+### 3.1 后端 `app/`：站点核心与增长子系统（目录分区）
+
+为便于维护，将 **列表推荐、AI SEO 分析、内容爬虫、公开与管理端 SEO 相关路由** 与站点主程序分区；**HTTP 路径与单进程部署不变**（仍由 `main.py` 统一注册 `APIRouter`）。
+
+| 分区 | 路径 | 说明 |
+|------|------|------|
+| **站点核心** | `backend/app/`（除 `growth/`）、`backend/app/routers/`（除 `growth/`） | 认证、工具与目录、用户域、站点块、埋点、订单、迁移、`analytics_service` 等 |
+| **增长与可见性** | `backend/app/growth/` | 推荐分计算与调度、爬虫服务与调度、AI 洞察（快照/LLM/SEO 任务/worker/调度/预设提示词） |
+| **增长路由** | `backend/app/routers/growth/` | `seo_public`、`admin_page_seo`、`admin_crawler`、`admin_ai_insights` |
+
 ---
 
 ## 4. 应用入口与生命周期（后端）
 
 ### 4.1 工厂与全局实例
 
-- **`backend/app/main.py`**：`create_app()` 组装 **CORS**、注册全部 **`APIRouter`**（统一前缀 **`/api`**），并导出模块级 **`app`** 供 Uvicorn 加载。
+- **`backend/app/main.py`**：`create_app()` 组装 **CORS**、注册 **`APIRouter`**（**站点核心** + **`routers/growth`**，统一前缀 **`/api`**），并导出模块级 **`app`** 供 Uvicorn 加载。
 - **OpenAPI 版本**：与 **`release_meta.api_version()`** 一致（环境变量 **`APP_VERSION`** 可覆盖，默认 `1.0.0`）。
 
 ### 4.2 Lifespan 启动链（顺序敏感）
@@ -158,7 +175,9 @@ flowchart TB
 4. **`run_seed_if_empty()`**：仅当库为空时导入种子数据。
 5. **`ensure_dev_accounts()`**：保证演示管理员与普通用户存在；**生产**对已存在用户**不覆盖** `password_hash`。
 6. **`seed_monetization_sample(conn)`**：订单表为空时插入示例推广订单（需存在 demo 用户与 active 工具）。
-7. **`asyncio.create_task(crawler_scheduler_loop())`**：进程内约每分钟巡检 **定时爬虫**；停机时 cancel 并 `await` 收尾。
+7. **`asyncio.create_task(crawler_scheduler_loop())`**：进程内约每分钟巡检 **定时爬虫**；停机时 cancel 并 `await` 收尾（实现位于 **`app.growth.crawler_scheduler`**）。
+8. **`asyncio.create_task(ai_insight_daily_scheduler_loop())`**：可选 **AI SEO 日更**调度（**`app.growth.ai_insight_scheduler`**；默认多由环境变量关闭）。
+9. **`asyncio.create_task(recommend_score_scheduler_loop())`**：列表 **推荐分** 周期重算（**`app.growth.recommend_scheduler`**；间隔 **`RECOMMEND_SCORE_INTERVAL_SEC`**，≤0 关闭）。
 
 ### 4.3 CORS 策略（摘要）
 
@@ -181,7 +200,7 @@ flowchart TB
 | 表 | 用途 |
 |----|------|
 | `category` | 工具分类 |
-| `tool` | 工具主实体（审核状态、slug、提交者等） |
+| `tool` | 工具主实体（审核状态、slug、提交者等；含 **`recommend_score`**、**`complexity_tier`** 供列表推荐 1.0，见 [需求-I](./需求-I-工具列表推荐排序算法-v1.md)） |
 | `tool_feature` / `tool_screenshot` / `tool_pricing_plan` | 详情子资源 |
 | `tool_alternative` | 替代工具关系 |
 | `review` | 用户评论（UGC 状态） |
@@ -212,14 +231,14 @@ flowchart TB
 | 健康 | `health_release.py` | `GET /health`：存活、版本、`database_backend`、可选 build 元数据 |
 | 工具与目录 | `tools.py`、`catalog.py` | 列表、详情（含 **`promotion_active`**）、分类、搜索建议、提交选项 |
 | 站点块 | `site.py` | `GET /site/{key}`、`/dashboard-data` |
-| SEO 公开 | `seo_public.py` | `sitemap.xml`、`robots.txt` |
+| SEO 公开 | `routers/growth/seo_public.py` | `sitemap.xml`、`robots.txt` |
 | 国际化 | `i18n.py` | 文案 bundle、语言列表 |
 | 对比 | `comparisons.py` | 对比页 JSON（含弱曝光字段） |
 | 认证 | `auth.py` | 登录、注册 |
 | 当前用户 | `user_profile.py`、`user_settings.py`、`user_favorites.py`、`user_activity.py`、`user_orders.py` | `/me*` 系列 |
 | 埋点 | `track.py` | `POST /track`，Cookie `track_sid` |
 | 投稿 | `submissions.py` | 登录用户提交工具 |
-| 管理端 | `admin_*.py` | 大盘、分析、工具审核、用户、评论、订单、设置、站点 JSON、翻译、联想词、对比页、爬虫、**AI SEO** 等 |
+| 管理端 | `admin_*.py`（及 **`routers/growth/`** 内爬虫、AI SEO、Page SEO） | 大盘、分析、工具审核、用户、评论、订单、设置、站点 JSON、翻译、联想词、对比页、爬虫、**AI SEO** 等 |
 
 **管理员鉴权**：依赖 **`deps_auth.get_current_admin`**，JWT 内 **`role=admin`**。
 
@@ -240,7 +259,8 @@ flowchart TB
 
 ### 7.3 AI SEO 助手
 
-- 只读组装站点与流量快照，调用 **OpenAI 兼容** `chat/completions`；结果入库为历史记录，**不自动写** `site_json` 或工具表。见 [12](./手册-D-需求-商业化-AI-SEO-爬虫.md)。
+- **单次分析（run）**：只读组装站点与流量快照，调用 **OpenAI 兼容** `chat/completions`；**`output_text` 仅入库为 `ai_insight_run` 历史记录**，不会在 run 完成时直接改 `site_json` 或工具表。
+- **配置面自动优化（§11，已落地）**：管理员在运行详情页 **生成 SEO 任务** → 任务为 **`draft` 清单** → **批准（approve）** 后调用 **apply**，服务端**自动**将白名单类型（**`page_seo_patch` / `home_seo_patch` / `seo_robots_patch`**）**合并写入**对应 **`site_json`**，并经校验与 **`ai_insight_seo_apply_audit`** 审计、可 **rollback**。**`code_pr_hint`** 类任务**不可**经 apply 写库，须 **PR/CI**。详见 [手册-D — PROD-AI-SEO §11](./手册-D-需求-商业化-AI-SEO-爬虫.md)。
 
 ### 7.4 内容爬虫
 
@@ -299,7 +319,7 @@ flowchart TB
 |-----------------|------|
 | `backend/scripts/publish_smoke.sh` | 对 `BASE_URL` 做公开接口抽样（401/200） |
 | `backend/scripts/crawler_acceptance.py` | 爬虫能力验收（临时库，见 [06](./手册-B-架构程序与API索引.md)） |
-| `.github/workflows/ci.yml` | 三端 build + smoke |
+| `.github/workflows/ci.yml` | **docs** lint；**backend** `py_compile`、`ai_insight_snapshots_acceptance`、`crawler_acceptance`、`verify_release_env`；**frontend/admin** build；**api-smoke**（uvicorn + `publish_smoke.sh`） |
 
 ---
 
@@ -321,11 +341,12 @@ flowchart TB
 ## 13. 版本与维护
 
 - **程序版本号**：以后端 **`APP_VERSION`** / OpenAPI / **`GET /api/health`** 的 `api_version` 为准。
-- **本文**：随仓库大功能变更更新；接口细节变更请同步 **[06](./手册-B-架构程序与API索引.md)**，避免双处冗长复制。
+- **本文**（手册 B 内 **架构与程序说明书**、**HTTP 分层**、**源代码索引**等）：随仓库**大功能/目录结构/生命周期**等变更更新。
+- **接口细节**（路径、方法、鉴权、请求体、错误码、表格长枚举）：**只**在同文件下文 **「# REST API 接口清单」（旧编号 06，日常精简）** 与 **「# REST API 完整接口文档」（旧编号 18，全量对账）** 维护；需求类文档（如手册-D）**勿**再冗长复制同一细表，改以 **06 / 18** 为权威，必要时用一句话链过去即可。
 
 ---
 
-*本文档为「程序说明书」完整版；若与代码不一致，以代码与 [06](./手册-B-架构程序与API索引.md) 为准并应修正本文。*
+*若与代码不一致，以代码与 **06 / 18** 两章为准，并回写修正本手册其它节。*
 
 
 ---
@@ -392,7 +413,7 @@ flowchart TB
 
 ---
 
-## 公开爬虫文件 `seo_public.py`
+## 公开 SEO `routers/growth/seo_public.py`
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -485,7 +506,7 @@ flowchart TB
 |------|------|----------|------|
 | GET | `/api/admin/analytics/pages` | `start_date`、`end_date`（YYYY-MM-DD）、`sort_by`=`pv`\|`uv`\|`uid` | 页面流量行数据 |
 
-### AI SEO / 流量分析 `admin_ai_insights.py`（PROD-AI-SEO）
+### AI SEO / 流量分析 `routers/growth/admin_ai_insights.py`（PROD-AI-SEO）
 
 服务端组装 **page_seo / home_seo / sitemap·robots 摘要** 与 **近 7 日流量聚合**，与可配置提示词一并调用 **OpenAI 兼容** `POST {base}/v1/chat/completions`；可维护**多条**连接（表 **`ai_insight_llm_provider`**），**手动勾选默认启用**；密钥优先 **`AI_INSIGHT_LLM_API_KEY`**（全局），其次该行 **`api_key`** 或 **`api_key_env_name`**。详见 [12-需求-AI-SEO与流量分析助手.md](./手册-D-需求-商业化-AI-SEO-爬虫.md)。
 
@@ -555,7 +576,7 @@ flowchart TB
 | GET | `/api/admin/settings` | `{ "payload": object }`，存 `site_json.admin_settings` |
 | PUT | `/api/admin/settings` | `{ "payload": object }` 整体覆盖 |
 
-### 页面 SEO `admin_page_seo.py`
+### 页面 SEO `routers/growth/admin_page_seo.py`
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -596,7 +617,7 @@ flowchart TB
 | PUT | `/api/admin/search-suggestions` | `{ "id", "text"?, "sort_order"? }` | 至少改一项；**404** `not_found`；**409** 文案重复 |
 | DELETE | `/api/admin/search-suggestions` | 查询参数 **`id`** | **404** 若不存在 |
 
-### 内容爬虫 `admin_crawler.py`（JSON 订阅 / PROD-CRAWLER MVP）
+### 内容爬虫 `routers/growth/admin_crawler.py`（JSON 订阅 / PROD-CRAWLER MVP）
 
 | 方法 | 路径 | 请求体 / 参数 | 说明 |
 |------|------|-----------------|------|
@@ -826,7 +847,7 @@ flowchart TB
 | GET | `/api/site/{key}` | 无 | `site_json.content_key`；缺失 **404** `not_found` |
 | GET | `/api/dashboard-data` | **可选 JWT** | `locale`（默认 `en`）；无登录返回 `dashboard` 静态壳；有登录则合并「我的工具」与埋点摘要 |
 
-### 3.5 SEO 公开 `seo_public.py`
+### 3.5 SEO 公开 `routers/growth/seo_public.py`
 
 | 方法 | 路径 | 响应类型 | 说明 |
 |------|------|----------|------|
@@ -913,7 +934,7 @@ flowchart TB
 |------|------|----------|------|
 | GET | `/api/admin/analytics/pages` | `start_date`、`end_date`、`sort_by`=`pv`\|`uv`\|`uid` | 分页/页面流量行数据 |
 
-### 5.3 AI SEO `admin_ai_insights.py`（前缀 `/api/admin/ai-insights`）
+### 5.3 AI SEO `routers/growth/admin_ai_insights.py`（前缀 `/api/admin/ai-insights`）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -985,7 +1006,7 @@ flowchart TB
 | GET | `/api/admin/settings` | — | `{ "payload": object }` → `site_json.admin_settings` |
 | PUT | `/api/admin/settings` | `{ "payload": object }` | 整体覆盖 |
 
-### 5.9 页面 SEO `admin_page_seo.py`
+### 5.9 页面 SEO `routers/growth/admin_page_seo.py`
 
 | 方法 | 路径 | 请求体 | 说明 |
 |------|------|--------|------|
@@ -1029,7 +1050,7 @@ flowchart TB
 | GET | `/api/admin/comparison-pages/{slug}` | — | `{ "slug", "payload" }`；404 `not_found` |
 | PUT | `/api/admin/comparison-pages/{slug}` | `{ "payload": { ... } }` | **`validate_comparison_payload`**；400 结构错误 |
 
-### 5.14 内容爬虫 `admin_crawler.py`（前缀 `/api/admin/crawler`）
+### 5.14 内容爬虫 `routers/growth/admin_crawler.py`（前缀 `/api/admin/crawler`）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -1072,12 +1093,13 @@ BASE_URL=https://你的API根 ./backend/scripts/publish_smoke.sh
 
 ## 8. 修订记录（维护说明）
 
-- 新增或删除路由时：**同步更新本文 §2 索引表与对应分节**，并检查 [06](./手册-B-架构程序与API索引.md) 是否需要摘要更新。
+- 新增或删除路由时：**同步更新本文 §6 HTTP 分层摘要、下文 06/18 接口表与对应分节**；需求文档（手册-D 等）**仅**在大功能/验收口径变化时改，**避免**与 **06** 双处复制接口长表（见 **§13**）。
 - 路由注册顺序敏感点：`GET /api/site/frontend_nav` 须先于 **`GET /api/site/{key}`**（见 `site.py`）。
+- **2026-04-05**：对照整仓代码更新 **§1 产品定位**、**架构 §3 目录表**、**§5 环境变量**、**§5.2 `tool` 列**、**§4.1/4.2** 注册与 **lifespan** 表述；与 **`app/growth`**、**`recommend_algo_v1`**、**CI** 一致。
 
 ---
 
-*生成基准：仓库 `backend/app/routers/*.py` 与 `main.py`；若与运行实例不一致，以部署版本为准。*
+*生成基准：仓库 `backend/app/main.py`、`backend/app/routers/**/*.py`、`backend/app/growth/*.py`；若与运行实例不一致，以部署版本为准。*
 
 
 ---
@@ -1094,7 +1116,7 @@ BASE_URL=https://你的API根 ./backend/scripts/publish_smoke.sh
 | 文件 | 说明 |
 |------|------|
 | `__init__.py` | 包标记。 |
-| `main.py` | `create_app()`：CORS（`ALLOWED_ORIGINS`）、挂载各 `APIRouter`（含 **`user_favorites`**、**`user_orders`**、**`admin_translations`**、**`admin_search_suggestions`**、**`admin_comparison_pages`** 等）；`lifespan` 内 `init_db`、`run_seed_if_empty`、`ensure_dev_accounts`、示例订单种子。 |
+| `main.py` | `create_app()`：CORS（`ALLOWED_ORIGINS`）、挂载各 `APIRouter`（核心路由 + **`routers/growth`** 中 SEO/爬虫/AI 洞察）；`lifespan` 内 `init_db`、种子、三后台调度任务（爬虫 / AI 日更 / 推荐分，后二者可环境关闭）。 |
 | `db.py` | 默认 **SQLite**（`DB_PATH`）；若设 **`DATABASE_URL`** 则 **`schema.pg.sql`** + `PgConnectionAdapter`；`init_db` / `get_db` 统一出口。 |
 | `db_util.py` | PostgreSQL 适配、`is_postgresql`、占位符与 Row 形态、DDL 分句等。 |
 | `paths.py` | 数据目录与 SQL 路径解析。 |
@@ -1106,6 +1128,32 @@ BASE_URL=https://你的API根 ./backend/scripts/publish_smoke.sh
 | `i18n_util.py` | 从库中解析分类标签、全量文案 map。 |
 | `page_type_util.py` | 页面类型相关工具（分析/展示用）。 |
 | `analytics_service.py` | 管理后台大盘汇总、趋势序列、页面维度 PV/UV/UID SQL。 |
+| `llm_adapter_dispatch.py` | 多供应商 LLM 适配入口（调用 **`app.growth.ai_insight_service`** 的 OpenAI 兼容通道）。 |
+| `site_json_revision_service.py` | `site_json` 配置修订历史（与 AI SEO apply 审计联动）。 |
+
+### `backend/app/growth/`
+
+| 文件 | 说明 |
+|------|------|
+| `recommend_service.py` | 工具列表推荐分 1.0：读 **`site_json.recommend_algo_v1`**、窗口聚合 PV/出站/收藏/评论、Z 分与写回 **`tool.recommend_score`**。 |
+| `recommend_scheduler.py` | 进程内定时重算推荐分（**`RECOMMEND_SCORE_INTERVAL_SEC`**）。 |
+| `crawler_service.py` | 内容爬虫：JSON 订阅拉取、校验、预览与写入策略。 |
+| `crawler_scheduler.py` | 定时巡检数据源并创建爬虫任务。 |
+| `ai_insight_service.py` | SEO/流量快照组装、OpenAI 兼容 Chat Completions、占位符校验与限流。 |
+| `ai_insight_seo_task_service.py` | 报告抽取 SEO 任务、**`site_json`** 合并与 canonical 辅助。 |
+| `ai_insight_scheduler.py` | AI SEO 日更调度（插入 pending run 等）。 |
+| `ai_insight_run_worker.py` | 终结 **`ai_insight_run=pending`**（API BackgroundTasks 与独立 worker 脚本共用）。 |
+| `ai_insight_step_up.py` | 敏感操作二次确认（环境开关 + 口令/密码）。 |
+| `ai_insight_prompt_defaults.py` | 默认提示词全文（与快照占位符白名单一致）。 |
+
+### `backend/app/routers/growth/`
+
+| 文件 | 说明 |
+|------|------|
+| `seo_public.py` | **`/api/seo/sitemap.xml`**、**`/api/seo/robots.txt`**。 |
+| `admin_page_seo.py` | 管理端 **Page SEO** → **`site_json.page_seo`**。 |
+| `admin_crawler.py` | **`/api/admin/crawler/*`**：数据源、任务、预览与提交。 |
+| `admin_ai_insights.py` | **`/api/admin/ai-insights/*`**：提示词、模型连接、分析 run、SEO 任务与审计回滚。 |
 
 ### `backend/app/routers/`
 
@@ -1121,9 +1169,6 @@ BASE_URL=https://你的API根 ./backend/scripts/publish_smoke.sh
 | `submissions.py` | 登录用户提交工具 → `pending`。 |
 | `admin_dashboard.py` | 大盘 summary / trend。 |
 | `admin_analytics.py` | 分页分析。 |
-| `admin_ai_insights.py` | **PROD-AI-SEO**：**`/api/admin/ai-insights/*`**（提示词、模型连接、分析 run、**SEO 任务** **`/seo-tasks*`**、**审计回滚** **`/seo-apply-audits*`**）。 |
-| `ai_insight_service.py` | SEO/流量快照组装、OpenAI 兼容 Chat Completions 调用、占位符校验与限流。 |
-| `ai_insight_seo_task_service.py` | 报告抽取多类型 SEO 任务 JSON、**`site_json`** 合并与 canonical 快照辅助（**§11**）。 |
 | `admin_tools.py` | 工具列表 tab、审核状态、精选、审核详情。 |
 | `admin_users.py` | 用户列表、角色、封禁；**发送邮件**：可选 **SMTP**（`SMTP_*`），未配置则 stub。 |
 | `user_favorites.py` | 登录用户收藏：**`GET/POST /api/me/favorites`**、**`DELETE .../{slug}`**、**`GET .../check`**。 |
@@ -1133,13 +1178,11 @@ BASE_URL=https://你的API根 ./backend/scripts/publish_smoke.sh
 | `admin_reviews.py` | 评论列表与 UGC 状态。 |
 | `admin_monetization.py` | 订单列表。 |
 | `admin_settings.py` | `admin_settings` JSON 读写。 |
-| `admin_page_seo.py` | 管理端 **Page SEO** → `site_json.page_seo`。 |
 | `admin_site_json.py` | 站点 JSON 白名单键 **GET/PUT**（含 **`home_seo`**；管理端「首页 SEO」亦写此键）。 |
 | `admin_translations.py` | **`/api/admin/translations*`**：维护 **`translation` 表**。 |
 | `admin_search_suggestions.py` | **`/api/admin/search-suggestions*`**：维护 **`search_suggestion` 表**（首页联想词）。 |
 | `admin_comparison_pages.py` | **`/api/admin/comparison-pages*`**：对比落地页 slug 与 JSON。 |
 | `user_orders.py` | **`GET /api/me/orders`**：登录用户推广订单列表。 |
-| `seo_public.py` | **`/api/seo/sitemap.xml`**（静态 path 来自 **`seo_sitemap_static`** 或常量；动态 **tool** / **comparison_page**；XML 转义、工具 **`lastmod`**）、**`/api/seo/robots.txt`**（默认 Sitemap 行；可读 **`site_json.seo_robots`**）。 |
 
 ### `backend/sql/`
 

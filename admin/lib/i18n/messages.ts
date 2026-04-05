@@ -137,6 +137,7 @@ type MsgTree = {
     fieldPricing: string;
     fieldIcon: string;
     fieldCategory: string;
+    fieldComplexity: string;
     approve: string;
     reject: string;
     featured: string;
@@ -404,6 +405,15 @@ type MsgTree = {
     seoTasksStatusRejected: string;
     seoTasksOnlySuccessRun: string;
     seoTasksEmpty: string;
+    /** 手工插入 page_seo_patch 草案（POST …/seo-tasks） */
+    manualSeoTaskTitle: string;
+    manualSeoTaskIntro: string;
+    manualSeoTaskPath: string;
+    manualSeoTaskPatch: string;
+    manualSeoTaskPlaceholder: string;
+    manualSeoTaskSubmit: string;
+    manualSeoTaskSubmitting: string;
+    manualSeoTaskJsonErr: string;
     /** 大模型连接：协议适配器（v2.x） */
     llmAdapter: string;
     /** 当前唯一可选：OpenAI 兼容 chat/completions */
@@ -450,6 +460,7 @@ type MsgTree = {
     referenceTitle: string;
     /** 各 content_key 一行说明，路径 siteJson.blockHelp.<key> */
     blockHelp: {
+      home_seo: string;
       ui_toasts: string;
       guide: string;
       more: string;
@@ -462,7 +473,9 @@ type MsgTree = {
       dashboard: string;
       seo_sitemap_static: string;
       seo_robots: string;
+      seo_tool_json_ld: string;
       ai_insight_competitor_benchmarks: string;
+      recommend_algo_v1: string;
     };
   };
   comparisonAdmin: {
@@ -637,6 +650,7 @@ export const messages: Record<AdminLocale, MsgTree> = {
       fieldPricing: "定价类型",
       fieldIcon: "图标 Emoji",
       fieldCategory: "分类",
+      fieldComplexity: "推荐·复杂度档位",
       approve: "通过",
       reject: "拒绝",
       featured: "精选",
@@ -903,7 +917,16 @@ export const messages: Record<AdminLocale, MsgTree> = {
       seoTasksStatusFailed: "失败",
       seoTasksStatusRejected: "已拒绝",
       seoTasksOnlySuccessRun: "仅「成功」状态的报告可生成草案。",
-      seoTasksEmpty: "尚无任务，可点击上方按钮从报告生成。",
+      seoTasksEmpty: "尚无任务，可点击上方按钮从报告生成，或使用下方手工草案。",
+      manualSeoTaskTitle: "手工添加 page_seo 草案",
+      manualSeoTaskIntro:
+        "不经过模型抽取，直接向本 run 挂一条 page_seo_patch（draft）。path 会按后台规则归一；patch 为 JSON 对象，键须与 Page SEO 白名单一致（如 title、description、keywords）。",
+      manualSeoTaskPath: "站内路径 path",
+      manualSeoTaskPatch: "patch（JSON 对象）",
+      manualSeoTaskPlaceholder: '{"description":"本页描述草稿"}',
+      manualSeoTaskSubmit: "插入草案",
+      manualSeoTaskSubmitting: "插入中…",
+      manualSeoTaskJsonErr: "patch 须为 JSON 对象，且至少包含一个允许的字符串字段。",
       llmAdapter: "协议适配器",
       llmAdapterOpenAICompatible: "OpenAI 兼容（chat/completions）",
       pendingRunsHint:
@@ -940,6 +963,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
       errNested: "JSON 无法解析，请修正后再失焦",
       referenceTitle: "当前块与前台 API 对照",
       blockHelp: {
+        home_seo:
+          "GET /api/site/home_seo — 顶栏品牌标题、可选 emoji、首页关键词等；与「首页 SEO」专页同一数据源。AI apply 的 home_seo_patch 亦写入此键。",
         ui_toasts:
           "GET /api/site/ui_toasts — 首页等使用的全站 Toast/提示条配置（文案、显示条件等）。勿随意删除顶层必需键以免前台请求失败。",
         guide: "GET /api/site/guide — 「使用指南」页（GuidePage）的章节与说明内容。",
@@ -962,8 +987,12 @@ export const messages: Record<AdminLocale, MsgTree> = {
           "后端生成 sitemap.xml 时读取 payload.urls（path / priority / changefreq）。配错会影响收录，迁移种子见 migrate。",
         seo_robots:
           "GET /api/seo/robots.txt 读取。可选：sitemap_url（单条绝对 URL）、sitemap_urls（多条）、disallow_paths（每项以 / 开头）、raw_body（非空则整文件覆盖）。未配时 Sitemap 指向 {PUBLIC_SITE_URL}/api/seo/sitemap.xml。",
+        seo_tool_json_ld:
+          "GET /api/site/seo_tool_json_ld — 工具详情页 SoftwareApplication JSON-LD 的全局浅合并块；复杂编辑可用「工具 JSON-LD」专页。",
         ai_insight_competitor_benchmarks:
           "仅用于 POST /api/admin/ai-insights/run 组装的 {{competitor_benchmark_snapshot}}。benchmarks[] 每项含 label、可选 notes、可选 metrics（对象，请写数据来源与日期）。无公开 GET。",
+        recommend_algo_v1:
+          "工具列表推荐 1.0（千人一面）。enabled=true 时 GET /api/tools 按 recommend_score 排序；window_days 内聚合详情 PV、出站点击、收藏/评论率等，权重见 layer_weights / traffic_inner / conversion_inner / commercial_inner / decay / complexity_coef。定时重算见 RECOMMEND_SCORE_INTERVAL_SEC；手动：PYTHONPATH=. python scripts/recompute_recommend_scores.py。工具复杂度：PATCH /api/admin/tools/{id} complexity_tier=simple|medium|high。",
       },
     },
     comparisonAdmin: {
@@ -1138,6 +1167,7 @@ export const messages: Record<AdminLocale, MsgTree> = {
       fieldPricing: "Pricing type",
       fieldIcon: "Icon emoji",
       fieldCategory: "Category",
+      fieldComplexity: "Recommend · complexity tier",
       approve: "Approve",
       reject: "Reject",
       featured: "Featured",
@@ -1407,7 +1437,16 @@ export const messages: Record<AdminLocale, MsgTree> = {
       seoTasksStatusFailed: "Failed",
       seoTasksStatusRejected: "Rejected",
       seoTasksOnlySuccessRun: "Only successful runs can generate drafts.",
-      seoTasksEmpty: "No tasks yet. Use the button above to generate from the report.",
+      seoTasksEmpty: "No tasks yet. Generate from the report above or add a manual draft below.",
+      manualSeoTaskTitle: "Manual page_seo draft",
+      manualSeoTaskIntro:
+        "Insert a page_seo_patch draft on this run without model extraction. path is normalized like Page SEO; patch must be a JSON object using allowed keys (e.g. title, description, keywords).",
+      manualSeoTaskPath: "Path",
+      manualSeoTaskPatch: "patch (JSON object)",
+      manualSeoTaskPlaceholder: '{"description":"Draft description for this path"}',
+      manualSeoTaskSubmit: "Insert draft",
+      manualSeoTaskSubmitting: "Inserting…",
+      manualSeoTaskJsonErr: "patch must be a JSON object with at least one allowed string field.",
       llmAdapter: "Protocol adapter",
       llmAdapterOpenAICompatible: "OpenAI-compatible (chat/completions)",
       pendingRunsHint:
@@ -1445,6 +1484,8 @@ export const messages: Record<AdminLocale, MsgTree> = {
       errNested: "Invalid JSON—fix before blur",
       referenceTitle: "Public API mapping (this block)",
       blockHelp: {
+        home_seo:
+          "GET /api/site/home_seo — nav brand title, optional emoji, home keywords; same payload as /admin/home-seo. AI home_seo_patch apply targets this key.",
         ui_toasts:
           "GET /api/site/ui_toasts — toast/banner copy and flags for home and other shells; keep required top keys stable.",
         guide: "GET /api/site/guide — Guide page sections and copy (GuidePage).",
@@ -1466,8 +1507,12 @@ export const messages: Record<AdminLocale, MsgTree> = {
           "Feeds sitemap XML generation from payload.urls (path, priority, changefreq); bad rows hurt SEO.",
         seo_robots:
           "Read by GET /api/seo/robots.txt. Optional: sitemap_url (one absolute URL), sitemap_urls (list), disallow_paths (each starts with /), raw_body (non-empty replaces entire file). Default Sitemap line uses {PUBLIC_SITE_URL}/api/seo/sitemap.xml.",
+        seo_tool_json_ld:
+          "GET /api/site/seo_tool_json_ld — global shallow merge for SoftwareApplication JSON-LD on tool detail; prefer /admin/tool-json-ld for guided edit.",
         ai_insight_competitor_benchmarks:
           "Used only when building {{competitor_benchmark_snapshot}} for POST /api/admin/ai-insights/run. benchmarks[] entries: label, optional notes, optional metrics object (cite source and date). No public GET.",
+        recommend_algo_v1:
+          "Tool list recommendation v1 (non-personalized). If enabled=true, GET /api/tools orders by recommend_score. Aggregates detail PV, outbound clicks, favorite/comment rates over window_days; tune layer_weights, *_inner, decay, complexity_coef. Scheduler: RECOMMEND_SCORE_INTERVAL_SEC; manual: PYTHONPATH=. python scripts/recompute_recommend_scores.py. Per-tool tier: PATCH /api/admin/tools/{id} complexity_tier=simple|medium|high.",
       },
     },
     comparisonAdmin: {

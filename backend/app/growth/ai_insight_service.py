@@ -85,6 +85,23 @@ def check_ai_insight_rate_limit(admin_user_id: int) -> None:
     _rate_limit_memory(admin_user_id, window_sec=window_sec, max_calls=max_calls)  # 单机/开发
 
 
+def fetch_llm_provider_row(conn: Any, provider_id: int | None) -> Any:  # noqa: ANN401 — DB Row 形态因驱动而异
+    """按 id 取 LLM 连接行；id 为 None 时优先 is_default=1，否则取最小 id（与路由 POST /run 一致）。"""
+    if provider_id is not None:  # 显式指定主键
+        return conn.execute(  # 单行查询
+            "SELECT * FROM ai_insight_llm_provider WHERE id = ?",  # 占位符与 PG 适配层一致
+            (provider_id,),  # 绑定 id
+        ).fetchone()  # 一行或 None
+    r = conn.execute(  # 默认启用行
+        "SELECT * FROM ai_insight_llm_provider WHERE is_default = 1 ORDER BY id LIMIT 1",  # 唯一默认
+    ).fetchone()  # 一行或 None
+    if r:  # 命中默认
+        return r  # 直接返回
+    return conn.execute(  # 无默认时兜底首条
+        "SELECT * FROM ai_insight_llm_provider ORDER BY id LIMIT 1",  # 最小 id
+    ).fetchone()  # 或 None
+
+
 def validate_user_prompt_template(text: str) -> None:
     """未知 {{token}} 时抛 ValueError，避免运营拼错占位符。"""
     for m in _PLACEHOLDER_RE.finditer(text):  # 扫描所有双花括号

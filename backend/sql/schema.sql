@@ -255,6 +255,11 @@ CREATE TABLE IF NOT EXISTS ai_insight_seo_apply_audit (
 CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_run ON ai_insight_seo_apply_audit(source_run_id);
 CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_task ON ai_insight_seo_apply_audit(task_id);
 
+CREATE TABLE IF NOT EXISTS ai_insight_scheduler_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  last_daily_run_date TEXT NOT NULL DEFAULT ''
+);
+
 CREATE TABLE IF NOT EXISTS site_json_content_revision (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   content_key TEXT NOT NULL,

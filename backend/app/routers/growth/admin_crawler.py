@@ -7,7 +7,7 @@ from typing import Any, Optional  # 可选字段与动态 JSON
 from fastapi import APIRouter, Depends, HTTPException  # 路由与鉴权
 from pydantic import BaseModel, ConfigDict, Field  # 请求体验证
 
-from app.crawler_service import commit_job, parse_config, run_import_job  # 核心业务
+from app.growth.crawler_service import commit_job, parse_config, run_import_job  # 核心业务
 from app.db import get_db, insert_returning_id  # 数据库与取插入 id
 from app.deps_auth import get_current_admin  # 管理员 JWT
 

@@ -10,7 +10,7 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Qu
 from fastapi.responses import JSONResponse  # 202 等非常规 JSON 响应（P-AI-05）
 from pydantic import BaseModel, Field  # 请求体验证
 
-from app.ai_insight_seo_task_service import (  # 报告 → 可审批 SEO 任务（§11：多键 + 审计回滚）
+from app.growth.ai_insight_seo_task_service import (  # 报告 → 可审批 SEO 任务（§11：多键 + 审计回滚）
     SEO_TASK_EXTRACT_SYSTEM,  # 抽取用系统消息
     build_extract_user_message,  # 用户消息（截断报告）
     canonical_json_text,  # 审计比对用稳定 JSON 文本
@@ -23,15 +23,16 @@ from app.ai_insight_seo_task_service import (  # 报告 → 可审批 SEO 任务
     utc_now_iso,  # UTC 时间戳
 )
 from app.site_json_payload_validate import validate_site_json_for_key  # 应用前校验 home_seo / seo_robots
-from app.ai_insight_run_worker import finalize_pending_ai_insight_run  # pending 跑完 LLM（与 worker 脚本共用）
-from app.ai_insight_service import (  # 业务逻辑
+from app.growth.ai_insight_run_worker import finalize_pending_ai_insight_run  # pending 跑完 LLM（与 worker 脚本共用）
+from app.growth.ai_insight_service import (  # 业务逻辑
     build_snapshots,
     check_ai_insight_rate_limit,
+    fetch_llm_provider_row,
     fill_user_template,
     resolve_llm_api_key,
     validate_user_prompt_template,
 )
-from app.ai_insight_step_up import (  # v2.x 二次确认
+from app.growth.ai_insight_step_up import (  # v2.x 二次确认
     StepUpOptionalBody,  # 可选请求体
     enforce_step_up,  # 校验
     step_up_config_public,  # GET 给前端
@@ -164,23 +165,6 @@ def _provider_row_to_api(row: object) -> dict:  # 单行 outward（不含 api_ke
         "created_at": str(row["created_at"]),  # 创建时间
         "updated_at": str(row["updated_at"]),  # 更新时间
     }
-
-
-def _fetch_llm_provider_row(conn: object, provider_id: int | None) -> object | None:  # Row | None
-    """按 id 取连接；id 空则用 is_default=1，再无则最小 id。"""
-    if provider_id is not None:  # 显式指定
-        return conn.execute(  # 按主键
-            "SELECT * FROM ai_insight_llm_provider WHERE id = ?",
-            (provider_id,),
-        ).fetchone()  # 一行或空
-    r = conn.execute(  # 默认启用
-        "SELECT * FROM ai_insight_llm_provider WHERE is_default = 1 ORDER BY id LIMIT 1",
-    ).fetchone()  # 一行或空
-    if r:  # 命中
-        return r  # 返回
-    return conn.execute(  # 兜底第一条
-        "SELECT * FROM ai_insight_llm_provider ORDER BY id LIMIT 1",
-    ).fetchone()  # 或空
 
 
 def _model_name_from_provider_snapshot(raw: str) -> str:  # 历史列表展示用
@@ -486,7 +470,7 @@ def run_ai_insight(
         raise  # 其他透传
     t0 = time.perf_counter()  # 开始计时
     with get_db() as conn:  # 单连接贯穿读配置与写记录
-        prow = _fetch_llm_provider_row(conn, body.provider_id)  # 指定 id 或默认启用的一条
+        prow = fetch_llm_provider_row(conn, body.provider_id)  # 指定 id 或默认启用的一条
         if body.provider_id is not None and prow is None:  # 显式 id 不存在
             raise HTTPException(status_code=404, detail="provider_not_found")  # 404
         if prow is None:  # 库内无任何连接配置
@@ -808,7 +792,7 @@ def create_manual_seo_task(
 ) -> dict:
     """手工插入一条 page_seo 草案（便于无模型或微调）。"""
     from app.page_catalog import normalize_page_path  # 路径归一
-    from app.routers.admin_page_seo import _clean_string_map  # 与 Page SEO 同源清洗
+    from app.routers.growth.admin_page_seo import _clean_string_map  # 与 Page SEO 同源清洗
 
     norm = normalize_page_path(body.path.strip())  # 归一
     if not norm.startswith("/"):  # 非法
@@ -872,7 +856,7 @@ def generate_seo_tasks_from_run(
                 "DELETE FROM ai_insight_seo_task WHERE source_run_id = ? AND status = ?",
                 (run_id, "draft"),
             )
-        prow = _fetch_llm_provider_row(conn, body.provider_id)  # 显式 provider
+        prow = fetch_llm_provider_row(conn, body.provider_id)  # 显式 provider
         if prow is None and body.provider_id is not None:  # id 无效
             raise HTTPException(status_code=404, detail="provider_not_found")  # 404
         if prow is None:  # 回退 run 当时连接
@@ -886,7 +870,7 @@ def generate_seo_tasks_from_run(
                     (int(lp_raw),),
                 ).fetchone()  # 一行
             if prow is None:  # 仍无
-                prow = _fetch_llm_provider_row(conn, None)  # 默认启用
+                prow = fetch_llm_provider_row(conn, None)  # 默认启用
         if prow is None:  # 无连接配置
             raise HTTPException(status_code=500, detail="provider_missing")  # 500
         api_key = resolve_llm_api_key(prow)  # 密钥

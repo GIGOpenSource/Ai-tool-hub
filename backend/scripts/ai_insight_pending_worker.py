@@ -25,7 +25,7 @@ def _pick_one_pending_id() -> int | None:  # 取最早一条 pending
 
 
 def main() -> int:  # CLI 退出码
-    from app.ai_insight_run_worker import finalize_pending_ai_insight_run  # 与 API 共用终结逻辑
+    from app.growth.ai_insight_run_worker import finalize_pending_ai_insight_run  # 与 API 共用终结逻辑
 
     os.chdir(_BACKEND_ROOT)  # 相对路径与 migrate 一致
     ap = argparse.ArgumentParser(description="AI insight pending run worker")  # 参数解析

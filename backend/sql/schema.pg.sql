@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS tool (
   category_id INTEGER NOT NULL REFERENCES category(id),
   review_count INTEGER NOT NULL DEFAULT 0,
   popularity INTEGER NOT NULL DEFAULT 0,
+  recommend_score DOUBLE PRECISION NOT NULL DEFAULT 0,
+  complexity_tier TEXT NOT NULL DEFAULT 'medium',
   website_url TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT '',
   moderation_status TEXT NOT NULL DEFAULT 'active',
@@ -265,6 +267,12 @@ CREATE TABLE IF NOT EXISTS ai_insight_seo_apply_audit (
 
 CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_run ON ai_insight_seo_apply_audit(source_run_id);
 CREATE INDEX IF NOT EXISTS idx_ai_seo_audit_task ON ai_insight_seo_apply_audit(task_id);
+
+CREATE TABLE IF NOT EXISTS ai_insight_scheduler_state (
+  id INTEGER PRIMARY KEY,
+  last_daily_run_date TEXT NOT NULL DEFAULT '',
+  CONSTRAINT ai_insight_scheduler_singleton CHECK (id = 1)
+);
 
 CREATE TABLE IF NOT EXISTS site_json_content_revision (
   id SERIAL PRIMARY KEY,

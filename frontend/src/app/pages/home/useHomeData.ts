@@ -27,7 +27,13 @@ export function useHomeData(language: string) {
     ])
       .then(([t, c, s, seo, toast]) => {
         if (!active) return;
-        setTools(t);
+        setTools( // 写入工具列表，并规范 recommend_score 供「热门」排序
+          (t ?? []) // 空响应时回退为空数组，避免对 null/undefined 调用 map
+            .map((x) => ({
+              ...x, // 保留接口返回的其余工具字段
+              recommend_score: typeof x.recommend_score === "number" ? x.recommend_score : 0, // 非数字时按 0（旧缓存兼容）
+            })),
+        );
         setCategories(c);
         setSuggestions(s);
         setHomeSeo(seo);

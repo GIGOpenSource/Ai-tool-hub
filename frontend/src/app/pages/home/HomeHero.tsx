@@ -9,6 +9,8 @@ type Props = {
   showSuggestions: boolean;
   setShowSuggestions: (v: boolean) => void;
   filteredSuggestions: string[];
+  /** 若提供：回车与点选联想词时跳转 /s/…，用于可分享搜索 URL */
+  onSearchNavigate?: (query: string) => void;
 };
 
 export function HomeHero({
@@ -17,6 +19,7 @@ export function HomeHero({
   showSuggestions,
   setShowSuggestions,
   filteredSuggestions,
+  onSearchNavigate,
 }: Props) {
   const { t } = useLanguage();
   return (
@@ -51,6 +54,14 @@ export function HomeHero({
               placeholder={t("home.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && onSearchNavigate) {
+                  const q = searchQuery.trim(); // 去空白
+                  if (!q) return; // 空不跳转
+                  e.preventDefault(); // 避免表单默认提交
+                  onSearchNavigate(q); // 进搜索落地页
+                }
+              }}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="w-full pl-12 pr-4 py-6 bg-[#1a0b2e]/50 border-purple-500/30 text-white placeholder:text-gray-500 focus:border-cyan-400 focus:ring-cyan-400/50 rounded-2xl"
@@ -69,8 +80,12 @@ export function HomeHero({
                   type="button"
                   className="w-full text-left px-4 py-3 text-gray-300 hover:bg-purple-900/30 hover:text-cyan-400 transition-colors flex items-center gap-2"
                   onClick={() => {
-                    setSearchQuery(suggestion);
-                    setShowSuggestions(false);
+                    if (onSearchNavigate) {
+                      onSearchNavigate(suggestion); // 直达 /s/ 可分享
+                    } else {
+                      setSearchQuery(suggestion); // 首页内过滤
+                    }
+                    setShowSuggestions(false); // 收起下拉
                   }}
                 >
                   <Search className="w-4 h-4" />

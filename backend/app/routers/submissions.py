@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from app.db import get_db, insert_returning_id
 from app.deps_auth import get_optional_user_id
+from app.ugc_text_guard import first_ugc_violation_among  # 可选敏感子串拦截（UGC_BLOCKED_SUBSTRINGS）
 
 router = APIRouter(tags=["submissions"])
 
@@ -40,6 +41,12 @@ def submit_tool(
     name = body.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="invalid_name")
+    desc = body.description.strip()  # 短描述
+    long_desc = body.long_description.strip()  # 长描述
+    feats = body.features  # 特性多行原文
+    viol = first_ugc_violation_among(name, desc, long_desc, feats)  # 环境变量黑名单（可空）
+    if viol is not None:
+        raise HTTPException(status_code=400, detail="ugc_blocked_substring")  # 命中则拒收
     base = _slugify(name)
     with get_db() as conn:
         cat = conn.execute(
@@ -62,8 +69,8 @@ def submit_tool(
             (
                 slug,
                 name,
-                body.description.strip(),
-                body.long_description.strip(),
+                desc,
+                long_desc,
                 body.pricing.strip() or "Freemium",
                 cat["id"],
                 body.website.strip(),

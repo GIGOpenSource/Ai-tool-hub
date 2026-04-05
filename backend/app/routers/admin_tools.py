@@ -38,6 +38,7 @@ class AdminToolPatchBody(BaseModel):
     pricing_type: Optional[str] = Field(default=None, max_length=64)
     icon_emoji: Optional[str] = Field(default=None, max_length=32)
     category_slug: Optional[str] = Field(default=None, max_length=128)
+    complexity_tier: Optional[str] = Field(default=None, max_length=16)  # simple | medium | high → 推荐流量层系数
 
 
 @router.get("/tools")
@@ -52,6 +53,7 @@ def admin_list_tools(
         where = " WHERE t.moderation_status = ? "
     sql = f"""SELECT t.id, t.slug, t.name, t.icon_emoji, t.moderation_status, t.featured,
                      t.website_url, t.submitted_by_user_id, c.slug AS category_slug,
+                     t.recommend_score, t.complexity_tier,
                      u.email AS submitter_email
               FROM tool t
               JOIN category c ON t.category_id = c.id
@@ -78,6 +80,8 @@ def admin_list_tools(
                     "submitter_email": r["submitter_email"],
                     "status": r["moderation_status"],
                     "featured": bool(r["featured"]),
+                    "recommend_score": float(r["recommend_score"] or 0),  # 推荐 1.0 分（只读展示）
+                    "complexity_tier": str(r["complexity_tier"] or "medium"),  # 复杂度档位
                     **tr,
                 }
             )
@@ -162,6 +166,12 @@ def admin_tool_patch(
     if body.icon_emoji is not None:
         fields.append("icon_emoji = ?")  # 列表用 emoji 图标
         values.append(body.icon_emoji.strip())
+    if body.complexity_tier is not None:  # 可选改推荐用复杂度
+        ct = body.complexity_tier.strip().lower()  # 规范化
+        if ct not in ("simple", "medium", "high"):  # 仅三档
+            raise HTTPException(status_code=400, detail="invalid_complexity_tier")  # 非法枚举
+        fields.append("complexity_tier = ?")  # 写库
+        values.append(ct)  # 绑定
     with get_db() as conn:
         if body.category_slug is not None:
             cs = body.category_slug.strip()  # 分类 slug
@@ -224,6 +234,7 @@ def admin_tool_review_detail(
             "category_slug": t["category_slug"],
             "moderation_status": t["moderation_status"],
             "reject_reason_code": t["reject_reason_code"],
+            "complexity_tier": str(t["complexity_tier"] or "medium"),  # 推荐算法流量层系数档位
             "features": feats,
             "screenshots": shots,
         }

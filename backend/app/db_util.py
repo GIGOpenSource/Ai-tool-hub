@@ -3,7 +3,12 @@ from __future__ import annotations
 
 import os  # 读 DATABASE_URL
 import sqlite3  # 判断原生 SQLite 连接
-from typing import Any, TypeGuard  # psycopg 连接无完整 stubs 时用 Any；TypeGuard 供 Pyright 收窄分支
+from typing import Any, Union  # Union 用于 MigrationConnection，避免 3.9 运行时求值 `A|B` 报错
+
+try:  # Python 3.10+ 标准库
+    from typing import TypeGuard  # 运行时收窄
+except ImportError:  # pragma: no cover — 3.9 回退（须 requirements 中 typing_extensions）
+    from typing_extensions import TypeGuard  # 与 CI 3.11 一致时走上一分支
 
 # 与种子、后台路由中完全一致的 SQLite 片段 -> PostgreSQL 等价写法（先长后短，避免误替换）
 _SQLITE_TO_PG_LITERALS: tuple[tuple[str, str], ...] = (
@@ -112,7 +117,7 @@ class PgConnectionAdapter:
         self._conn.rollback()  # 回滚事务
 
 
-MigrationConnection = sqlite3.Connection | PgConnectionAdapter  # 迁移/种子侧注解：二者均有 execute/commit，避免写成 | object 触发 Pyright
+MigrationConnection = Union[sqlite3.Connection, PgConnectionAdapter]  # 迁移/种子侧类型别名；用 Union 兼容 Py3.9 运行时
 
 
 def is_pg_adapter(conn: object) -> TypeGuard[PgConnectionAdapter]:

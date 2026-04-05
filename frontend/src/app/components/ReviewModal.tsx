@@ -36,8 +36,8 @@ export function ReviewModal({ open, onClose, toolName }: ReviewModalProps) {
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // 暂未接后端：真实发评需用户侧 POST API、落 review 表与 ugc_status 审核流（见 docs/项目-PRD-ORD-与实现差距及优化清单.md）
+    await new Promise((resolve) => setTimeout(resolve, 1500)); // 占位延迟，避免误以为是即时成功写库
 
     toast.success("Review submitted successfully!");
     onClose();

@@ -88,6 +88,25 @@ async function postSeoTaskAction(token: string, path: string, body: Record<strin
   if (!res.ok) throw new Error(await res.text()); // 失败
 }
 
+/** 手工插入 page_seo_patch 草案（与手册-D §11、POST /runs/{id}/seo-tasks 一致） */
+async function postManualPageSeoDraft(
+  token: string, // 管理员 JWT
+  runId: string, // run 主键
+  path: string, // 原始 path，服务端归一
+  patch: Record<string, string>, // 仅字符串值键，后端再白名单过滤
+): Promise<void> {
+  const res = await fetch(`/api/admin/ai-insights/runs/${runId}/seo-tasks`, {
+    method: "POST", // 创建草案
+    headers: {
+      Authorization: `Bearer ${token}`, // JWT
+      "Content-Type": "application/json", // JSON 体
+    },
+    body: JSON.stringify({ path, patch }), // SeoTaskManualBody
+    credentials: "include", // Cookie
+  }); // 请求
+  if (!res.ok) throw new Error(await res.text()); // 失败带体
+}
+
 export default function AdminAiInsightRunDetailPage() {
   const params = useParams(); // 路由参数
   const id = String(params.id ?? ""); // run id 字符串
@@ -95,6 +114,8 @@ export default function AdminAiInsightRunDetailPage() {
   const { t } = useI18n(); // t()
   const qc = useQueryClient(); // 缓存
   const [replaceDrafts, setReplaceDrafts] = useState(false); // 生成前是否删除旧草案
+  const [manualPath, setManualPath] = useState("/"); // 手工草案 path
+  const [manualPatchText, setManualPatchText] = useState('{"description":""}'); // 手工 patch JSON 文本
   const [stepUpShared, setStepUpShared] = useState(""); // v2.x 共享口令
   const [stepUpLogin, setStepUpLogin] = useState(""); // v2.x 登录密码复核
   const [revKey, setRevKey] = useState<"page_seo" | "home_seo" | "seo_robots">("page_seo"); // 修订史键
@@ -200,6 +221,29 @@ export default function AdminAiInsightRunDetailPage() {
     onSuccess: () => invalidateTasks(), // 刷新
   }); // 删草案
 
+  const manualDraft = useMutation({
+    mutationFn: async () => {
+      let parsed: unknown; // JSON 解析结果
+      try {
+        parsed = JSON.parse(manualPatchText); // 用户编辑的 JSON
+      } catch {
+        throw new Error(t("aiSeoInsights.manualSeoTaskJsonErr")); // 非法 JSON
+      }
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error(t("aiSeoInsights.manualSeoTaskJsonErr")); // 须对象
+      }
+      const strMap: Record<string, string> = {}; // 仅收集字符串值（与后端 Pydantic 一致）
+      for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+        if (typeof v === "string") strMap[k] = v; // 忽略数字等
+      }
+      if (Object.keys(strMap).length === 0) {
+        throw new Error(t("aiSeoInsights.manualSeoTaskJsonErr")); // 无可用字段
+      }
+      await postManualPageSeoDraft(token, id, manualPath.trim(), strMap); // 调 API
+    },
+    onSuccess: () => invalidateTasks(), // 刷新列表
+  }); // 手工草案
+
   const taskStatusLabel = (s: string) => {
     // 状态文案
     if (s === "draft") return t("aiSeoInsights.seoTasksStatusDraft"); // 草案
@@ -257,6 +301,39 @@ export default function AdminAiInsightRunDetailPage() {
       <div className="rounded-lg border border-amber-500/25 bg-amber-950/10 p-4 space-y-3">
         <h2 className="text-sm font-medium text-amber-200">{t("aiSeoInsights.seoTasksSectionTitle")}</h2>
         <p className="text-xs text-gray-400 whitespace-pre-line">{t("aiSeoInsights.seoTasksIntro")}</p>
+        <div className="rounded border border-white/10 bg-black/25 p-3 space-y-2">
+          <p className="text-xs font-medium text-gray-200">{t("aiSeoInsights.manualSeoTaskTitle")}</p>
+          <p className="text-xs text-gray-500">{t("aiSeoInsights.manualSeoTaskIntro")}</p>
+          <label className="block text-xs text-gray-400">
+            {t("aiSeoInsights.manualSeoTaskPath")}
+            <input
+              type="text"
+              className="mt-1 w-full rounded border border-white/10 bg-admin-bg/90 p-2 text-sm text-white font-mono"
+              value={manualPath}
+              onChange={(e) => setManualPath(e.target.value)}
+            />
+          </label>
+          <label className="block text-xs text-gray-400">
+            {t("aiSeoInsights.manualSeoTaskPatch")}
+            <textarea
+              className="mt-1 w-full min-h-[88px] rounded border border-white/10 bg-admin-bg/90 p-2 text-xs text-white font-mono"
+              placeholder={t("aiSeoInsights.manualSeoTaskPlaceholder")}
+              value={manualPatchText}
+              onChange={(e) => setManualPatchText(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            disabled={manualDraft.isPending}
+            className="rounded-lg bg-slate-600/90 hover:bg-slate-500 disabled:opacity-50 px-3 py-1.5 text-xs text-white"
+            onClick={() => manualDraft.mutate()}
+          >
+            {manualDraft.isPending ? t("aiSeoInsights.manualSeoTaskSubmitting") : t("aiSeoInsights.manualSeoTaskSubmit")}
+          </button>
+          {manualDraft.isError ? (
+            <p className="text-xs text-red-400">{(manualDraft.error as Error).message}</p>
+          ) : null}
+        </div>
         {qStepUp.data?.need_step_up_password || qStepUp.data?.need_current_password ? (
           <div className="rounded border border-white/10 bg-black/30 p-3 space-y-2">
             <p className="text-xs font-medium text-amber-100/90">{t("aiSeoInsights.stepUpBlockTitle")}</p>

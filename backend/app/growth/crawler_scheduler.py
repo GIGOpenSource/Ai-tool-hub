@@ -6,7 +6,7 @@ import logging  # 调度异常日志
 import os  # CRAWLER_SCHEDULER_ENABLED
 from datetime import date, datetime, timedelta  # 间隔与按日配额
 
-from app.crawler_service import run_import_job  # 同步抓取与入库
+from app.growth.crawler_service import run_import_job  # 同步抓取与入库
 from app.db import get_db, insert_returning_id  # 连接与插入任务 id
 
 log = logging.getLogger(__name__)  # 模块日志器

@@ -179,6 +179,13 @@ def seo_sitemap_xml() -> Response:
             lm = _lastmod_date(row["created_at"] if row["created_at"] else None)  # 可选日期
             loc = _tool_url_xml(base, slug)  # 编码 + 转义
             parts.append(_url_entry(loc, "weekly", "0.9", lm))  # 详情页默认权
+        for row in conn.execute(  # 分类列表页（PRD 静态分类 URL）
+            "SELECT slug FROM category WHERE slug IS NOT NULL AND slug != '' ORDER BY slug ASC"
+        ):  # 全部分类
+            cslug = str(row["slug"])  # 分类 slug
+            enc = quote(cslug, safe="")  # 段编码，与工具 slug 一致
+            loc = _loc_xml(base, f"/category/{enc}")  # 与前台路由一致
+            parts.append(_url_entry(loc, "weekly", "0.75", None))  # 低于详情页
         for row in conn.execute("SELECT slug FROM comparison_page ORDER BY slug ASC"):  # 对比页
             slug = row["slug"]  # slug
             loc = _compare_url_xml(base, slug)  # 编码 + 转义

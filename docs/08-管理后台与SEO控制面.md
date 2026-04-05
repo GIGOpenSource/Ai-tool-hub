@@ -14,7 +14,7 @@
 | **用户评论 UGC** | 有（**Reviews**） | **是**，影响详情页已发布评论 |
 | **用户与角色** | 有（**Users**） | **间接**，主控账号权限与封禁，不直接改前台文案 |
 | **统计与大盘** | 有（**Dashboard / Analytics**） | **否**，只读分析，不改前台内容 |
-| **AI SEO / 流量解读** | **有**（**`/admin/ai-seo-insights`**，**CP-AI-SEO**） | **一键分析**仍为**只读文本**；**§11 任务路径**：管理员 **批准** 后可 **应用** 写入 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**）；**源码类建议**不可 API 落盘，须 **PR/CI**；见 [12](./手册-D-需求-商业化-AI-SEO-爬虫.md) **§11** |
+| **AI SEO / 流量解读** | **有**（**`/admin/ai-seo-insights`**，**CP-AI-SEO**） | **分析 run 产出报告正文**在库内只读展示，**不在 run 完成时自动改 SEO**；**§11**：**生成任务清单 → 管理员批准 →「应用」自动合并**写入 **`site_json`**（**`page_seo` / `home_seo` / `seo_robots`**），并审计/可回滚；**源码类建议**不可 API 落盘，须 **PR/CI**。见 [手册-D](./手册-D-需求-商业化-AI-SEO-爬虫.md) **§1.2.2、§11**。可选 **进程内日更**：**`AI_INSIGHT_DAILY_SCHEDULER_ENABLED=1`** 等见 **`backend/.env.example`** |
 | **商业化订单** | 有（**Monetization**） | **已登录**：个人中心列表 **`GET /api/me/orders`** + 详情页 **`/orders/:id`**（**`GET /api/me/orders/{id}`**）；**匿名**无订单区；工具详情/对比可显 **`promotion_active`**（弱曝光） |
 | **系统设置（菜单等）** | 有（**Settings**） | **是（前台主导航）**：`frontend_menu_items` 经 **GET /api/site/frontend_nav** 供 `Navigation.tsx`；失败或空数组则回退硬编码 |
 | **`site_json` 大块内容**（guide / more / sitemap 文案块等） | **有（站点 JSON）+ 若干专用页** | **是**：**站点 JSON** `GET/PUT /api/admin/site-json/{key}`（白名单）；**`page_seo`、`admin_settings` 除外**；**`home_seo`** 以 **「首页 SEO」分字段表单**为主（`/admin/home-seo`），整包 JSON 仅作进阶 |
@@ -37,7 +37,7 @@
 
 ### 2.2 `sitemap.xml` / `robots.txt`
 
-- **实现**：`GET /api/seo/sitemap.xml`、`GET /api/seo/robots.txt`（`seo_public` 路由；统一前缀 **`/api`**）。
+- **实现**：`GET /api/seo/sitemap.xml`、`GET /api/seo/robots.txt`（`routers/growth/seo_public`；统一前缀 **`/api`**）。
 - **可控部分**：**工具详情**、**对比页** URL 来自数据库（`tool.slug`、`comparison_page.slug`）——经 **Tools**、**Comparisons**（或 SQL）维护；**slug** 在 URL 中经编码后再写入 **`<loc>`**，并对 **`<loc>` / `priority` / `changefreq` / `lastmod`** 做 **XML 转义**；工具行在 `created_at` 可解析为 `YYYY-MM-DD` 时输出 **`<lastmod>`**。
 - **静态路径**：优先 **`site_json.seo_sitemap_static`**（`urls: [{ path, priority, changefreq }]`），无效或空则回退 **后端常量**（含首页、`/support/*` 等公开路由）。
 - **robots.txt**：默认 `User-agent: *`、`Allow: /`、`Sitemap: {PUBLIC_SITE_URL}/api/seo/sitemap.xml`。可通过 **`site_json.seo_robots`** 配置 **`sitemap_url`**（单条绝对 URL）、**`sitemap_urls`**（多条，优先于单条）、**`disallow_paths`**（每项以 `/` 开头）、或 **`raw_body`**（非空则整文件覆盖，用于反向代理到根路径 `robots.txt` / `sitemap.xml` 时的自定义声明）。
@@ -99,7 +99,7 @@
 | **JSON-LD** | **`seo_tool_json_ld.global_merge`** 可配；专页 **`/admin/tool-json-ld`**（亦在站点 JSON） | 按工具 slug 逐条覆盖若需另立 |
 | **i18n 工程化** | **Translations** 已可维护表；**导入/导出**已有（见 **CP-I18N**） | 第三方翻译平台 API 对接另立 |
 | **订单展示范围** | 已登录：列表 + **`/orders/:orderId`** 详情；**匿名无订单区** | 强曝光首页插卡等见 [**10-需求-商业化与订单.md**](./手册-D-需求-商业化-AI-SEO-爬虫.md) 后续迭代 |
-| **AI SEO / 流量分析助手** | **有**（**`/admin/ai-seo-insights`**） | 一键分析、历史与详情；**§11** 任务/审计/回滚；接口 [**06**](./手册-B-架构程序与API索引.md) **admin_ai_insights** |
+| **AI SEO / 流量分析助手** | **有**（**`/admin/ai-seo-insights`**） | 一键分析、历史与详情；**§11** 任务/审计/回滚；后端 **`routers/growth/admin_ai_insights.py`**（[**手册-B**](./手册-B-架构程序与API索引.md) 全量 API 表） |
 
 ---
 
@@ -141,4 +141,4 @@
 ### 8.3 环境依赖（简要）
 
 - **顶栏品牌**：**`home_seo.brand_title`** / 可选 **`brand_icon_emoji`**（**首页 SEO** 或 `site_json`）；空则前台默认 Lucide `Sparkles`。
-- **公网根 URL**：前台 **`VITE_PUBLIC_SITE_URL`**（`frontend/src/lib/siteUrl.ts`）；sitemap / robots 用 **`PUBLIC_SITE_URL`**（`seo_public.py`）。上线应指向**同一生产域**。
+- **公网根 URL**：前台 **`VITE_PUBLIC_SITE_URL`**（`frontend/src/lib/siteUrl.ts`）；sitemap / robots 用 **`PUBLIC_SITE_URL`**（`routers/growth/seo_public.py`）。上线应指向**同一生产域**。
