@@ -17,6 +17,7 @@ from app.analytics_service import (  # 聚合统计
     page_analytics_rows,  # 路径行
     trend_series,  # 日趋势
 )
+from app.page_catalog import build_tracked_path_list, normalize_page_path  # 全站可跟踪 path 与路径归一
 
 # 用户模板允许的占位符（seo_indexing_snapshot 为 sitemap/robots；crawler_snapshot 仅为旧名兼容）
 _ALLOWED_PLACEHOLDERS = frozenset(
@@ -151,32 +152,60 @@ def _load_site_json(conn: Any, key: str) -> dict:  # noqa: ANN401 — Row 连接
     return data if isinstance(data, dict) else {}  # 仅 dict
 
 
-def _page_seo_paths_stratified(page_seo: dict[str, Any], analytics_rows: list[dict], *, max_paths: int) -> tuple[list[str], str]:  # P-AI-04 分层抽样
-    """先收录近窗热门且存在于 page_seo 的 path，再按字典序补足至 max_paths。"""
-    if not isinstance(page_seo, dict) or max_paths <= 0:  # 无配置或上限无效
-        return [], "empty_page_seo_or_zero_limit"  # 空策略说明
-    ordered: list[str] = []  # 输出 path 顺序
+def _normalize_page_seo_keys(page_seo: dict[str, Any]) -> dict[str, Any]:  # 将 page_seo 的 key 归一为 pathname
+    """同一路径多种写法合并为 normalize_page_path 后的单键；先出现的条目优先。"""
+    out: dict[str, Any] = {}  # 归一 path → 原 SEO 对象
+    if not isinstance(page_seo, dict):  # 非对象
+        return out  # 空映射
+    for k, v in page_seo.items():  # 遍历运营配置
+        if not isinstance(k, str):  # 键须为字符串
+            continue  # 跳过异常键
+        pk = normalize_page_path(k)  # 与埋点/目录口径一致
+        if pk not in out and isinstance(v, dict):  # 首键保留 + 仅收对象值
+            out[pk] = v  # 记入
+    return out  # 归一后的 page_seo
+
+
+def _full_site_path_universe(conn: Any, page_seo_norm: dict[str, Any]) -> list[str]:  # noqa: ANN401 — DB 连接形态
+    """catalog（静态/站点 JSON/对比/分类/工具详情等）与 page_seo 键的并集，字典序列表。"""
+    catalog_paths, _cfg = build_tracked_path_list(conn)  # 站内可跟踪 path 有序列表
+    keys_from_seo = set(page_seo_norm.keys())  # 运营单独维护、可能尚未出现在 catalog 的 path
+    return sorted(set(catalog_paths) | keys_from_seo)  # 并集后字典序（与旧「补足」段一致）
+
+
+def _page_seo_paths_stratified_full_site(  # 全站逐页：在并集上热门优先 + 字典序补足
+    universe: list[str],  # 预计算的 catalog∪page_seo 有序全集（避免重复扫库）
+    analytics_rows: list[dict],
+    *,
+    max_paths: int,
+) -> tuple[list[str], str]:
+    """在「catalog ∪ page_seo」全集上排序；max_paths<=0 表示不截断（全量注入）。"""
+    if not universe:  # 无任何可跟踪页
+        return [], "empty_no_catalog_paths"  # 极端空库
+    universe_set = frozenset(universe)  # 成员测试 O(1)；universe 已 sorted
+    limit = len(universe) if max_paths <= 0 else min(max_paths, len(universe))  # 0 即全量
+    ordered: list[str] = []  # 输出顺序
     seen: set[str] = set()  # 去重
-    for r in analytics_rows:  # 已按 PV 排序
-        if len(ordered) >= max_paths:  # 已满
-            break  # 停止
-        p = str(r.get("page_path") or "").strip()  # 埋点路径
-        if not p or p not in page_seo or p in seen:  # 无 SEO 配置或重复
+    for r in analytics_rows:  # 已按 PV 降序
+        if len(ordered) >= limit:  # 已达 cap（全量时 limit==len(universe)）
+            break  # 结束热门段
+        p = normalize_page_path(str(r.get("page_path") or ""))  # 与全集同一归一规则
+        if not p or p not in universe_set or p in seen:  # 非站内可跟踪或重复
             continue  # 跳过
         ordered.append(p)  # 热门优先
-        seen.add(p)  # 标记
-    for p in sorted(page_seo.keys()):  # 字典序补长尾
-        if len(ordered) >= max_paths:  # 已满
+        seen.add(p)  # 标记已选
+    for p in universe:  # 字典序扫全集（universe 已 sorted）
+        if len(ordered) >= limit:  # 已满
             break  # 停止
-        if p in seen:  # 已在热门段
+        if p in seen:  # 热门段已收录
             continue  # 跳过
-        ordered.append(p)  # 补足
+        ordered.append(p)  # 补足长尾
         seen.add(p)  # 标记
-    strategy = "hybrid_hot_analytics_then_sorted_lexicographic"  # 有分析行时的策略名
-    if not analytics_rows:  # 无埋点聚合
-        ordered = sorted(page_seo.keys())[:max_paths]  # 纯字典序截断
-        strategy = "sorted_path_keys_only_no_analytics_window"  # 回退说明
-    return ordered, strategy  # path 列表与策略标签
+    strategy = "hybrid_hot_analytics_then_sorted_lexicographic"  # 有埋点窗口时的策略名（与验收脚本一致）
+    if not analytics_rows:  # 无近窗聚合
+        ordered = universe[:limit]  # 纯字典序前缀（全量时即整表）
+        strategy = "sorted_path_keys_only_no_analytics_window"  # 与旧回退同名
+    return ordered, strategy  # 列表与标签
 
 
 def _build_competitor_benchmark_json(raw: dict[str, Any]) -> str:  # P-AI-03 结构化竞品块
@@ -216,11 +245,14 @@ def _build_competitor_benchmark_json(raw: dict[str, Any]) -> str:  # P-AI-03 结
 
 def build_snapshots(conn: Any) -> tuple[dict[str, str], dict[str, Any]]:  # noqa: ANN401
     """返回 (占位符名→字符串, 完整摘要 dict 供落库 input_payload_summary)。"""
-    page_seo_max = _env_int("AI_INSIGHT_PAGE_SEO_MAX_PATHS", 50, lo=1, hi=500)  # P-AI-04 可配置条数
+    # 默认 0＝不限制（全站 catalog∪page_seo 全注入）；设正整数则截断条数以控 token
+    page_seo_max = _env_int("AI_INSIGHT_PAGE_SEO_MAX_PATHS", 0, lo=0, hi=200_000)  # 0 表示全量逐页
+    seo_snap_max_chars = _env_int("AI_INSIGHT_SEO_SNAPSHOT_MAX_CHARS", 400_000, lo=8_000, hi=2_000_000)  # 全站 TDK JSON 注入上限
     traffic_days = _env_int("AI_INSIGHT_TRAFFIC_WINDOW_DAYS", 7, lo=1, hi=90)  # 流量聚合天数
     traffic_top_n = _env_int("AI_INSIGHT_TRAFFIC_TOP_PATHS", 20, lo=1, hi=200)  # 热门 path 条数
 
-    page_seo = _load_site_json(conn, "page_seo")  # path → SEO 字段
+    page_seo = _load_site_json(conn, "page_seo")  # path → SEO 字段（原始键）
+    page_seo_norm = _normalize_page_seo_keys(page_seo if isinstance(page_seo, dict) else {})  # 归一键供并集与查找
     home_seo = _load_site_json(conn, "home_seo")  # 顶栏与首页关键词
     sm = _load_site_json(conn, "seo_sitemap_static")  # 静态 sitemap 配置
     rb = _load_site_json(conn, "seo_robots")  # robots 配置
@@ -237,29 +269,47 @@ def build_snapshots(conn: Any) -> tuple[dict[str, str], dict[str, Any]]:  # noqa
     )
     top = rows[:traffic_top_n] if rows else []  # Top N 路径
 
-    paths, path_strategy = _page_seo_paths_stratified(page_seo, rows, max_paths=page_seo_max)  # 分层 path 列表
-    seo_paths: list[dict[str, str]] = []  # 精简条目
-    for p in paths:  # 按抽样顺序输出
-        ent = page_seo.get(p) if isinstance(page_seo, dict) else None  # 条目
-        if not isinstance(ent, dict):  # 跳过非对象
-            continue  # 下一个
-        seo_paths.append(
-            {
-                "path": p,  # 归一路径
-                "title": _clip(str(ent.get("title") or ent.get("title_zh") or ""), 200),  # 标题截断
-                "description": _clip(str(ent.get("description") or ent.get("description_zh") or ""), 280),  # 描述
-                "noindex": str(ent.get("noindex", "")),  # 是否 noindex
-            }
-        )
+    universe_list = _full_site_path_universe(conn, page_seo_norm)  # 全站 path 并集（只算一次）
+    universe_n = len(universe_list)  # 并集大小供摘要
+    paths, path_strategy = _page_seo_paths_stratified_full_site(  # 并集上热门优先 + 字典序
+        universe_list,
+        rows,
+        max_paths=page_seo_max,
+    )
+    seo_paths: list[dict[str, str]] = []  # 每 path 一行（无 page_seo 行则空 TDK，便于模型补洞）
+    for p in paths:  # 按全站策略顺序输出
+        ent = page_seo_norm.get(p)  # 归一键命中
+        if isinstance(ent, dict):  # 有运营配置
+            seo_paths.append(
+                {
+                    "path": p,  # 归一路径
+                    "title": _clip(str(ent.get("title") or ent.get("title_zh") or ""), 200),  # 标题截断
+                    "description": _clip(str(ent.get("description") or ent.get("description_zh") or ""), 280),  # 描述
+                    "noindex": str(ent.get("noindex", "")),  # 是否 noindex
+                }
+            )
+        else:  # catalog 有、page_seo 未配置
+            seo_paths.append(
+                {
+                    "path": p,  # 路径仍进入快照
+                    "title": "",  # 待补
+                    "description": "",  # 待补
+                    "noindex": "",  # 默认未声明
+                }
+            )
     seo_snapshot = json.dumps(  # SEO 块 JSON 文本
         {
             "home_seo": {  # 首页块摘要
                 "brand_title": _clip(str(home_seo.get("brand_title", "")), 120),  # 品牌名
                 "keywords": _clip(str(home_seo.get("keywords", "")), 200),  # 关键词串
             },
-            "page_seo_sample": seo_paths,  # 页面 TDK 样本
-            "page_seo_sample_strategy": path_strategy,  # 抽样策略标签（P-AI-04）
-            "page_seo_sample_limits": {"max_paths": page_seo_max},  # 当前上限
+            "page_seo_sample": seo_paths,  # 全站逐 path 的 TDK 列表（名称沿用占位符兼容）
+            "page_seo_sample_strategy": path_strategy,  # 排序策略标签
+            "page_seo_sample_limits": {  # 条数口径
+                "max_paths_env": page_seo_max,  # 0 表示环境未限制
+                "universe_paths": universe_n,  # catalog∪page_seo 并集大小
+                "included_paths": len(seo_paths),  # 实际写入条数（受 max_paths_env 截断时可能小于 universe）
+            },
         },
         ensure_ascii=False,  # 保留中文
     )
@@ -339,7 +389,8 @@ def build_snapshots(conn: Any) -> tuple[dict[str, str], dict[str, Any]]:  # noqa
                 },
             },
             "ai_insight_snapshot_env_limits": {  # 与进程环境一致，便于审计
-                "AI_INSIGHT_PAGE_SEO_MAX_PATHS": page_seo_max,
+                "AI_INSIGHT_PAGE_SEO_MAX_PATHS": page_seo_max,  # 0＝全站不截断
+                "AI_INSIGHT_SEO_SNAPSHOT_MAX_CHARS": seo_snap_max_chars,  # SEO 块注入字符上限
                 "AI_INSIGHT_TRAFFIC_WINDOW_DAYS": traffic_days,
                 "AI_INSIGHT_TRAFFIC_TOP_PATHS": traffic_top_n,
                 "AI_INSIGHT_RATE_LIMIT_WINDOW_SEC": rl_window_sec,  # P-AI-06 与 check 一致
@@ -353,7 +404,7 @@ def build_snapshots(conn: Any) -> tuple[dict[str, str], dict[str, Any]]:  # noqa
     competitor_benchmark_snapshot = _build_competitor_benchmark_json(comp_raw)  # 竞品 JSON 文本
     idx_clipped = _clip(seo_indexing_snapshot, 8000)  # 索引配置段截断
     placeholders = {  # 注入模板（crawler_snapshot 与 seo_indexing_snapshot 同内容，兼容旧运营模板）
-        "seo_snapshot": _clip(seo_snapshot, 12000),  # 控制总长
+        "seo_snapshot": _clip(seo_snapshot, seo_snap_max_chars),  # 全站时提高上限，仍可由 env 收紧
         "seo_indexing_snapshot": idx_clipped,  # 推荐占位符名（P-AI-01）
         "crawler_snapshot": idx_clipped,  # deprecated 别名，避免旧配置报错
         "traffic_snapshot": _clip(traffic_snapshot, 12000),
@@ -369,8 +420,9 @@ def build_snapshots(conn: Any) -> tuple[dict[str, str], dict[str, Any]]:  # noqa
         "competitor_benchmark_chars": len(placeholders["competitor_benchmark_snapshot"]),  # 竞品块长度
         "page_seo_paths_included": len(seo_paths),  # 含多少 path
         "page_seo_sample_strategy": path_strategy,  # 策略标签
-        "snapshot_limits": {  # P-AI-04 生效值
+        "snapshot_limits": {  # P-AI-04 生效值（page_seo_max_paths=0 表示全站不截断条数）
             "page_seo_max_paths": page_seo_max,
+            "page_seo_universe_paths": universe_n,  # 并集规模
             "traffic_window_days": traffic_days,
             "traffic_top_paths": traffic_top_n,
         },
