@@ -1,34 +1,55 @@
+networks:
+  ai_hub_net:
+    name: ai_hub_net
+
+volumes:
+  staticfiles:
+    driver: local
+  nginx_logs:
+    driver: local
+
 services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ai_hub_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./fronted/dist:/usr/share/pages/frontend:ro
+      - ./admin/.next/static:/usr/share/pages/admin/static:ro
+      - ./admin/.next/server/app:/usr/share/pages/admin/server:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - ai_hub_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - backend
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ai_tool_hub_backend
-    restart: always
+    container_name: ai_hub_backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    volumes:
+      - staticfiles:/app/staticfiles
     env_file:
       - .env
-    volumes:
-      - ./media:/app/media
-      - ./logs:/app/logs
+    environment:
+      - ALLOWED_ORIGINS=http://gigaisystem.com,https://gigaisystem.com
     networks:
-      - app_network
-
-  nginx:
-    image: nginx:alpine
-    container_name: ai_tool_hub_nginx
-    restart: always
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./admin/.next/static:/usr/share/nginx/html/admin/static:ro
-      - ./fronted/dist:/usr/share/nginx/html/frontend:ro
-    depends_on:
-      - backend
-    networks:
-      - app_network
-
-networks:
-  app_network:
+      - ai_hub_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
