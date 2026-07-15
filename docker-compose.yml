@@ -12,8 +12,7 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: ai_hub_nginx
-    ports:
-      - "80:80"
+    ports: []  # 不映射到宿主机，通过 main_nginx 代理访问
     volumes:
       - ./fronted/dist:/usr/share/pages/frontend:ro
       - ./admin/.next/static:/usr/share/pages/admin/static:ro
